@@ -222,15 +222,17 @@ def create_3d_laminate_plot(lam):
         dx = arrow_length * np.cos(np.radians(theta))
         dy = arrow_length * np.sin(np.radians(theta))
 
+        # Draw line for fiber direction
         fig.add_trace(go.Scatter3d(
             x=[cx - dx/2, cx + dx/2],
             y=[cy - dy/2, cy + dy/2],
             z=[mid_z, mid_z],
             mode='lines+markers',
             line=dict(color='black', width=4),
-            marker=dict(size=4, symbol='arrow', angleref='previous'),
+            marker=dict(size=[6, 10], color=['black', 'red'], symbol='diamond'),
             name=f"Fiber direction {theta}°",
-            showlegend=False
+            showlegend=False,
+            hovertemplate=f"Fiber direction: {theta}°<extra></extra>"
         ))
 
     fig.update_layout(
