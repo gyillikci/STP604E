@@ -272,24 +272,150 @@ def visualize_stiffness_analysis(material, stacking_input, ply_thickness):
             st.plotly_chart(fig, use_container_width=True)
 
         # Rotation study
-        st.subheader("Rotation Study: Effect of Laminate Rotation")
+        st.markdown("---")
+        st.subheader("🔄 Rotation Study: Effect of Laminate Rotation")
+        st.write("Rotate the entire laminate and observe how the stiffness matrices change")
 
         rotation_angle = st.slider("Global Rotation Angle (°)", -90, 90, 0, 5)
 
         rotated_sequence = [(angle + rotation_angle) for angle in lam.stacking_sequence]
         lam_rotated = Laminate(material, rotated_sequence, ply_thickness)
 
+        # Display sequences
+        col1, col2 = st.columns(2)
+        with col1:
+            st.info(f"**Original:** {lam.stacking_sequence}")
+        with col2:
+            st.success(f"**Rotated by {rotation_angle}°:** {rotated_sequence}")
+
+        # Show A matrix comparison with heatmaps
+        st.write("### [A] Matrix Comparison")
         col1, col2 = st.columns(2)
 
         with col1:
-            st.write("**Original Laminate**")
-            st.write(f"Sequence: {lam.stacking_sequence}")
-            st.dataframe(lam.A)
+            st.write("**Original [A] Matrix**")
+            fig = create_matrix_heatmap(lam.A, "Original [A]", "N/mm")
+            st.plotly_chart(fig, use_container_width=True)
 
         with col2:
-            st.write(f"**Rotated by {rotation_angle}°**")
-            st.write(f"Sequence: {rotated_sequence}")
-            st.dataframe(lam_rotated.A)
+            st.write(f"**Rotated [A] Matrix ({rotation_angle}°)**")
+            fig = create_matrix_heatmap(lam_rotated.A, f"Rotated [A] (θ={rotation_angle}°)", "N/mm")
+            st.plotly_chart(fig, use_container_width=True)
+
+        # Show numerical comparison
+        with st.expander("📊 Detailed Numerical Comparison"):
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.write("**Original [A]**")
+                st.dataframe(lam.A, use_container_width=True)
+
+            with col2:
+                st.write("**Rotated [A]**")
+                st.dataframe(lam_rotated.A, use_container_width=True)
+
+            with col3:
+                st.write("**Absolute Difference**")
+                diff = np.abs(lam_rotated.A - lam.A)
+                st.dataframe(diff, use_container_width=True)
+
+                # Calculate and show max change
+                max_change = np.max(diff)
+                avg_change = np.mean(diff[diff > 1e-10])  # Ignore near-zero values
+                st.metric("Max Change", f"{max_change:.3f} N/mm")
+                if avg_change > 0:
+                    st.metric("Avg Change", f"{avg_change:.3f} N/mm")
+
+        # B and D matrix comparisons
+        st.write("### [B] and [D] Matrix Comparison")
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.write("**[B] Coupling Matrix**")
+            fig = create_matrix_heatmap(lam_rotated.B, f"[B] at θ={rotation_angle}°", "N")
+            st.plotly_chart(fig, use_container_width=True)
+
+        with col2:
+            st.write("**[D] Bending Matrix**")
+            fig = create_matrix_heatmap(lam_rotated.D, f"[D] at θ={rotation_angle}°", "N·mm")
+            st.plotly_chart(fig, use_container_width=True)
+
+        # Add continuous rotation plot
+        st.markdown("---")
+        st.write("### 📈 Stiffness vs. Rotation Angle")
+
+        with st.expander("Show continuous rotation analysis", expanded=False):
+            st.write("This plot shows how stiffness matrix elements vary with rotation angle")
+
+            # Calculate for a range of angles
+            angles = np.linspace(-90, 90, 37)  # Every 5 degrees
+            A11_vals, A22_vals, A12_vals, A66_vals = [], [], [], []
+            A16_vals, A26_vals = [], []
+
+            for angle in angles:
+                temp_seq = [(a + angle) for a in lam.stacking_sequence]
+                temp_lam = Laminate(material, temp_seq, ply_thickness)
+                A11_vals.append(temp_lam.A[0, 0])
+                A22_vals.append(temp_lam.A[1, 1])
+                A12_vals.append(temp_lam.A[0, 1])
+                A66_vals.append(temp_lam.A[2, 2])
+                A16_vals.append(temp_lam.A[0, 2])
+                A26_vals.append(temp_lam.A[1, 2])
+
+            # Create plot
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=angles, y=A11_vals, name='A₁₁',
+                                    mode='lines', line=dict(width=2)))
+            fig.add_trace(go.Scatter(x=angles, y=A22_vals, name='A₂₂',
+                                    mode='lines', line=dict(width=2, dash='dash')))
+            fig.add_trace(go.Scatter(x=angles, y=A12_vals, name='A₁₂',
+                                    mode='lines', line=dict(width=2)))
+            fig.add_trace(go.Scatter(x=angles, y=A66_vals, name='A₆₆',
+                                    mode='lines', line=dict(width=2)))
+
+            # Add vertical line at current rotation
+            fig.add_vline(x=rotation_angle, line_dash="dot", line_color="red",
+                         annotation_text=f"Current: {rotation_angle}°",
+                         annotation_position="top")
+
+            fig.update_layout(
+                title="[A] Matrix Elements vs. Global Rotation",
+                xaxis_title="Rotation Angle (°)",
+                yaxis_title="Stiffness (N/mm)",
+                height=400,
+                hovermode='x unified'
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Coupling terms
+            fig2 = go.Figure()
+            fig2.add_trace(go.Scatter(x=angles, y=A16_vals, name='A₁₆',
+                                     mode='lines', line=dict(width=2)))
+            fig2.add_trace(go.Scatter(x=angles, y=A26_vals, name='A₂₆',
+                                     mode='lines', line=dict(width=2)))
+
+            fig2.add_vline(x=rotation_angle, line_dash="dot", line_color="red",
+                          annotation_text=f"Current: {rotation_angle}°")
+            fig2.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.5)
+
+            fig2.update_layout(
+                title="Shear Coupling Terms vs. Global Rotation",
+                xaxis_title="Rotation Angle (°)",
+                yaxis_title="Stiffness (N/mm)",
+                height=400,
+                hovermode='x unified'
+            )
+
+            st.plotly_chart(fig2, use_container_width=True)
+
+            # Check for quasi-isotropy
+            A11_range = max(A11_vals) - min(A11_vals)
+            A16_max = max(np.abs(A16_vals))
+            if A11_range < 0.01 * np.mean(A11_vals) and A16_max < 0.01:
+                st.success("✓ This laminate appears to be QUASI-ISOTROPIC! The stiffness remains nearly constant with rotation.")
+            else:
+                st.info(f"ℹ️ This laminate is NOT quasi-isotropic. A₁₁ varies by {A11_range:.2f} N/mm ({A11_range/np.mean(A11_vals)*100:.1f}%)")
 
     except Exception as e:
         st.error(f"Error: {str(e)}")
