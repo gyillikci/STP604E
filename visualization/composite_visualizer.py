@@ -276,10 +276,22 @@ def visualize_stiffness_analysis(material, stacking_input, ply_thickness):
         st.subheader("🔄 Rotation Study: Effect of Laminate Rotation")
         st.write("Rotate the entire laminate and observe how the stiffness matrices change")
 
-        rotation_angle = st.slider("Global Rotation Angle (°)", -90, 90, 0, 5)
+        rotation_angle = st.slider(
+            "Global Rotation Angle (°)",
+            min_value=-90,
+            max_value=90,
+            value=0,
+            step=5,
+            key="rotation_slider_stiffness"
+        )
 
+        # Recalculate rotated laminate
         rotated_sequence = [(angle + rotation_angle) for angle in lam.stacking_sequence]
         lam_rotated = Laminate(material, rotated_sequence, ply_thickness)
+
+        # Display current rotation prominently
+        st.metric("Current Rotation Angle", f"{rotation_angle}°",
+                 delta=f"{rotation_angle}° from original")
 
         # Display sequences
         col1, col2 = st.columns(2)
@@ -290,17 +302,28 @@ def visualize_stiffness_analysis(material, stacking_input, ply_thickness):
 
         # Show A matrix comparison with heatmaps
         st.write("### [A] Matrix Comparison")
+
+        # Show quick comparison of key values
+        col_a, col_b, col_c = st.columns(3)
+        with col_a:
+            st.metric("Original A₁₁", f"{lam.A[0,0]:.2f} N/mm")
+        with col_b:
+            st.metric("Rotated A₁₁", f"{lam_rotated.A[0,0]:.2f} N/mm",
+                     delta=f"{lam_rotated.A[0,0]-lam.A[0,0]:.2f}")
+        with col_c:
+            st.metric("Rotated A₁₆", f"{lam_rotated.A[0,2]:.3f} N/mm")
+
         col1, col2 = st.columns(2)
 
         with col1:
             st.write("**Original [A] Matrix**")
-            fig = create_matrix_heatmap(lam.A, "Original [A]", "N/mm")
-            st.plotly_chart(fig, use_container_width=True)
+            fig_orig = create_matrix_heatmap(lam.A, "Original [A]", "N/mm")
+            st.plotly_chart(fig_orig, use_container_width=True, key=f"heatmap_orig_A")
 
         with col2:
             st.write(f"**Rotated [A] Matrix ({rotation_angle}°)**")
-            fig = create_matrix_heatmap(lam_rotated.A, f"Rotated [A] (θ={rotation_angle}°)", "N/mm")
-            st.plotly_chart(fig, use_container_width=True)
+            fig_rot = create_matrix_heatmap(lam_rotated.A, f"Rotated [A] (θ={rotation_angle}°)", "N/mm")
+            st.plotly_chart(fig_rot, use_container_width=True, key=f"heatmap_rot_A_{rotation_angle}")
 
         # Show numerical comparison
         with st.expander("📊 Detailed Numerical Comparison"):
@@ -331,14 +354,19 @@ def visualize_stiffness_analysis(material, stacking_input, ply_thickness):
         col1, col2 = st.columns(2)
 
         with col1:
-            st.write("**[B] Coupling Matrix**")
-            fig = create_matrix_heatmap(lam_rotated.B, f"[B] at θ={rotation_angle}°", "N")
-            st.plotly_chart(fig, use_container_width=True)
+            st.write(f"**[B] Coupling Matrix (θ={rotation_angle}°)**")
+            fig_B = create_matrix_heatmap(lam_rotated.B, f"[B] at θ={rotation_angle}°", "N")
+            st.plotly_chart(fig_B, use_container_width=True, key=f"heatmap_B_{rotation_angle}")
+            # Show max B value
+            max_B = np.max(np.abs(lam_rotated.B))
+            st.caption(f"Max |B| = {max_B:.3f} N")
 
         with col2:
-            st.write("**[D] Bending Matrix**")
-            fig = create_matrix_heatmap(lam_rotated.D, f"[D] at θ={rotation_angle}°", "N·mm")
-            st.plotly_chart(fig, use_container_width=True)
+            st.write(f"**[D] Bending Matrix (θ={rotation_angle}°)**")
+            fig_D = create_matrix_heatmap(lam_rotated.D, f"[D] at θ={rotation_angle}°", "N·mm")
+            st.plotly_chart(fig_D, use_container_width=True, key=f"heatmap_D_{rotation_angle}")
+            # Show D11 value
+            st.caption(f"D₁₁ = {lam_rotated.D[0,0]:.3f} N·mm")
 
         # Add continuous rotation plot
         st.markdown("---")
