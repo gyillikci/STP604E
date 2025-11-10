@@ -1,0 +1,13 @@
+# Composite Materials Analysis - STP 604E
+# Core scientific computing
+numpy>=1.21.0
+scipy>=1.7.0
+matplotlib>=3.5.0
+
+# Interactive visualization
+plotly>=5.10.0
+streamlit>=1.20.0
+
+# Optional for Jupyter notebooks
+jupyter>=1.0.0
+ipywidgets>=8.0.0
