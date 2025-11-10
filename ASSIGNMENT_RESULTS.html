@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STP 604E - Assignment 1 Results</title>
+    <style>
+        @media print {
+            @page {
+                size: A4;
+                margin: 2cm;
+            }
+            body {
+                font-size: 10pt;
+            }
+            h1 {
+                page-break-before: always;
+            }
+            h1:first-of-type {
+                page-break-before: avoid;
+            }
+            table, img, pre {
+                page-break-inside: avoid;
+            }
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #ffffff;
+            color: #333;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-top: 40px;
+        }
+        
+        h2 {
+            color: #34495e;
+            border-bottom: 2px solid #95a5a6;
+            padding-bottom: 8px;
+            margin-top: 30px;
+        }
+        
+        h3 {
+            color: #555;
+            margin-top: 25px;
+        }
+        
+        h4 {
+            color: #666;
+            margin-top: 20px;
+        }
+        
+        code {
+            background-color: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.9em;
+        }
+        
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        th {
+            background-color: #3498db;
+            color: white;
+            font-weight: bold;
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #2980b9;
+        }
+        
+        td {
+            padding: 10px;
+            border: 1px solid #ddd;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f0f0f0;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        hr {
+            border: none;
+            border-top: 2px solid #3498db;
+            margin: 40px 0;
+        }
+        
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        ul, ol {
+            margin: 15px 0;
+            padding-left: 30px;
+        }
+        
+        li {
+            margin: 8px 0;
+        }
+        
+        blockquote {
+            border-left: 4px solid #3498db;
+            padding-left: 20px;
+            margin: 20px 0;
+            color: #666;
+            font-style: italic;
+        }
+        
+        .toc {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+        
+        .toc h2 {
+            margin-top: 0;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+<h1 id="stp-604e-assignment-1-results">STP 604E - Assignment 1 Results</h1>
+
+<h2 id="classical-laminated-plate-theory-clpt-analysis">Classical Laminated Plate Theory (CLPT) Analysis</h2>
+
+<p><strong>Course</strong>: Advanced Design, Analysis and Optimization of Composite Structure for Aerospace<br />
+<strong>Date</strong>: November 8, 2025<br />
+<strong>Analysis Tool</strong>: Python with custom composite_lib<br />
+<strong>Prepared by</strong>: Giray Yıllıkçı</p>
+
+<blockquote>
+  <p><strong>Note on Academic Integrity</strong>: I am disclosing that AI tools (GitHub Copilot, Claude) were used in the preparation of this document and the development of the computational analysis code. This note is added voluntarily to maintain transparency and academic integrity.</p>
+</blockquote>
+
+<hr />
+
+<h2 id="table-of-contents">Table of Contents</h2>
+
+<ol>
+<li><a href="#problem-1">Problem 1: Quasi-Isotropic Laminate Analysis</a></li>
+<li><a href="#problem-2">Problem 2: Micromechanics Analysis</a></li>
+<li><a href="#problem-3">Problem 3: Zero Shear Strain Constraint</a></li>
+<li><a href="#problem-3-v2">Problem 3 (Version 2): Alternative Stacking Sequence</a></li>
+<li><a href="#problem-4">Problem 4: Stiffness Matrix Comparison</a></li>
+<li><a href="#summary">Summary and Conclusions</a></li>
+</ol>
+
+<hr />
+
+<h2 id="problem-1-quasi-isotropic-laminate-analysis-problem-1">Problem 1: Quasi-Isotropic Laminate Analysis {#problem-1}</h2>
+
+<h3 id="problem-statement">Problem Statement</h3>
+
+<p>Analyze whether laminates consisting of three or more identical orthotropic laminae oriented at the same angle relative to adjacent laminae exhibit isotropic extensional stiffness. Rotate the laminates and plot A-matrix elements as a function of the top ply orientation.</p>
+
+<p><strong>Laminates Analyzed:</strong><br />
+- Laminate 1: <code>[-45/0/45/90]</code><br />
+- Laminate 2: <code>[0/30/60/90]</code></p>
+
+<h3 id="material-properties">Material Properties</h3>
+
+<ul>
+<li><strong>Material</strong>: AS4/3501-6 Carbon/Epoxy</li>
+<li>E₁ = 142.0 GPa</li>
+<li>E₂ = 10.3 GPa</li>
+<li>G₁₂ = 7.2 GPa</li>
+<li>ν₁₂ = 0.27</li>
+<li>Ply thickness = 0.125 mm</li>
+</ul>
+
+<h3 id="results-summary">Results Summary</h3>
+
+<h4 id="laminate-1-4504590-quasi-isotropic">Laminate 1: [-45/0/45/90] ✓ QUASI-ISOTROPIC</h4>
+
+<p><strong>Key Findings:</strong><br />
+- <strong>A₁₁ variation</strong>: 0.00% (perfectly constant)<br />
+- <strong>A₂₂ variation</strong>: 0.00% (perfectly constant)<br />
+- <strong>Max |A₁₆|</strong>: 0.000000 N/mm (essentially zero)<br />
+- <strong>Max |A₂₆|</strong>: 0.000000 N/mm (essentially zero)</p>
+
+<p><strong>Conclusion</strong>: This laminate maintains constant stiffness properties regardless of rotation angle - it is truly quasi-isotropic! The 45° angle spacing creates a balanced configuration.</p>
+
+<p><strong>A-matrix at 0° rotation:</strong></p>
+
+<pre><code>[[30.86  8.82  0.00]
+ [ 8.82 30.86  0.00]
+ [ 0.00  0.00 11.02]]
+</code></pre>
+
+<h4 id="laminate-2-0306090-not-quasi-isotropic">Laminate 2: [0/30/60/90] ✗ NOT QUASI-ISOTROPIC</h4>
+
+<p><strong>Key Findings:</strong><br />
+- <strong>A₁₁ variation</strong>: 92.82% (huge variation with rotation)<br />
+- <strong>A₂₂ variation</strong>: 92.82% (huge variation with rotation)<br />
+- <strong>Max |A₁₆|</strong>: 7.93 N/mm (significant coupling)<br />
+- <strong>Max |A₂₆|</strong>: 7.93 N/mm (significant coupling)</p>
+
+<p><strong>Conclusion</strong>: Properties change dramatically with rotation angle. The 30° spacing does not achieve quasi-isotropy.</p>
+
+<h3 id="visualization">Visualization</h3>
+
+<p><img src="assignment1_problem1_results.png" alt="Problem 1 Results" /></p>
+
+<p><strong>Figure 1</strong>: Extensional stiffness matrix components vs. rotation angle for both laminates. The left column shows Laminate 1 (quasi-isotropic behavior with flat lines), while the right column shows Laminate 2 (significant variation with rotation).</p>
+
+<h3 id="key-insights">Key Insights</h3>
+
+<ol>
+<li><strong>Quasi-isotropic laminates require specific angle spacing</strong> - the [-45/0/45/90] configuration with 45° increments works perfectly</li>
+<li><strong>Shear-extension coupling terms (A₁₆, A₂₆) must be zero</strong> for quasi-isotropy</li>
+<li><strong>Equal normal stiffnesses (A₁₁ = A₂₂)</strong> are necessary but not sufficient</li>
+<li>The analysis validates the theoretical requirement: n ≥ 3 plies with equal angular spacing of 180°/n</li>
+</ol>
+
+<hr />
+
+<h2 id="problem-2-micromechanics-analysis-problem-2">Problem 2: Micromechanics Analysis {#problem-2}</h2>
+
+<h3 id="problem-statement-2">Problem Statement</h3>
+
+<p>Determine the engineering constants of a <code>[0/90/0]ₛ</code> laminate fabricated from unidirectional laminae using micromechanics principles.</p>
+
+<h3 id="given-data">Given Data</h3>
+
+<p><strong>Fiber Properties:</strong><br />
+- E<em>f = 220 GPa<br />
+- ν</em>f = 0.25</p>
+
+<p><strong>Matrix Properties:</strong><br />
+- E<em>m = 3.6 GPa<br />
+- ν</em>m = 0.40</p>
+
+<p><strong>Geometry:</strong><br />
+- Lamina thickness (t) = 0.25 mm<br />
+- Fiber diameter (d) = 10 μm<br />
+- Number of fibers per mm width = 1900</p>
+
+<h3 id="analysis-process">Analysis Process</h3>
+
+<h4 id="step-1-fiber-volume-fraction-calculation">Step 1: Fiber Volume Fraction Calculation</h4>
+
+<pre><code>Fiber cross-sectional area per fiber:
+  A_fiber = π × (5×10⁻³)² = 7.854×10⁻⁵ mm²
+
+Total fiber area per 1 mm width:
+  A_fibers = 1900 × 7.854×10⁻⁵ = 0.1492 mm²
+
+Cross-sectional area of lamina per 1 mm width:
+  A_lamina = 0.25 × 1 = 0.25 mm²
+
+Fiber Volume Fraction:
+  V_f = 0.1492 / 0.25 = 0.5970 (59.70%)
+  V_m = 0.4030 (40.30%)
+</code></pre>
+
+<blockquote>
+  <p><strong>Note on Calculation Ambiguity</strong>: There is some uncertainty in interpreting the problem statement regarding whether the calculated value 0.1492 represents the fiber area (leading to V<em>f = 59.70%) or if it should be used directly as the volume fraction (V</em>f = 14.92%). I proceeded with V_f = 59.70% because a fiber volume fraction of ~15% would be abnormally low for a structural composite laminate. Typical aerospace-grade composites have fiber volume fractions in the range of 55-65%. However, this interpretation should be verified with the problem statement or instructor guidance.</p>
+</blockquote>
+
+<h4 id="step-2-lamina-engineering-constants-micromechanics">Step 2: Lamina Engineering Constants (Micromechanics)</h4>
+
+<p><strong>Using Rule of Mixtures and Halpin-Tsai equations:</strong></p>
+
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>Method</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>E₁</td>
+  <td>Rule of Mixtures</td>
+  <td>132.727 GPa</td>
+</tr>
+<tr>
+  <td>E₂</td>
+  <td>Halpin-Tsai (ξ=2)</td>
+  <td>8.077 GPa</td>
+</tr>
+<tr>
+  <td>G₁₂</td>
+  <td>Halpin-Tsai (ξ=1)</td>
+  <td>3.363 GPa</td>
+</tr>
+<tr>
+  <td>ν₁₂</td>
+  <td>Rule of Mixtures</td>
+  <td>0.3103</td>
+</tr>
+</tbody>
+</table>
+
+<p><strong>Intermediate Calculations:</strong><br />
+- G<em>f = E</em>f / (2(1+ν<em>f)) = 88.000 GPa<br />
+- G</em>m = E<em>m / (2(1+ν</em>m)) = 1.286 GPa<br />
+- η (for E₂) = 0.9689<br />
+- η (for G₁₂) = 0.9715</p>
+
+<h4 id="step-3-laminate-properties">Step 3: Laminate Properties</h4>
+
+<p><strong>Stacking Sequence:</strong> <code>[0/90/0]ₛ</code> = <code>[0/90/0/0/90/0]</code><br />
+- Number of plies: 6<br />
+- Total thickness: 1.500 mm<br />
+- Symmetric: Yes</p>
+
+<p><strong>ABD Matrices:</strong></p>
+
+<p>Extensional Stiffness [A] (N/mm):</p>
+
+<pre><code>[[278.52   5.04   0.00]
+ [  5.04 278.52   0.00]
+ [  0.00   0.00  10.09]]
+</code></pre>
+
+<p>Coupling Stiffness [B] (N):</p>
+
+<pre><code>[[ 0.00  0.00  0.00]
+ [ 0.00  0.00  0.00]
+ [ 0.00  0.00  0.00]]
+</code></pre>
+
+<p><em>Note: B matrix is zero (symmetric laminate)</em></p>
+
+<p>Bending Stiffness [D] (N·mm):</p>
+
+<pre><code>[[15.38  0.98  0.00]
+ [ 0.98 15.38  0.00]
+ [ 0.00  0.00  0.56]]
+</code></pre>
+
+<p><strong>Effective Laminate Engineering Constants:</strong></p>
+
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>E_x</td>
+  <td>185.666 GPa</td>
+</tr>
+<tr>
+  <td>E_y</td>
+  <td>185.666 GPa</td>
+</tr>
+<tr>
+  <td>G_xy</td>
+  <td>6.725 GPa</td>
+</tr>
+<tr>
+  <td>ν_xy</td>
+  <td>0.0181</td>
+</tr>
+<tr>
+  <td>ν_yx</td>
+  <td>0.0181</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="key-observations">Key Observations</h3>
+
+<ol>
+<li><strong>Balanced laminate</strong>: E<em>x = E</em>y due to [0/90]ₛ symmetry</li>
+<li><strong>Low Poisson's ratio</strong>: ν_xy ≈ 0.018 (much lower than individual plies)</li>
+<li><strong>Zero coupling</strong>: B matrix = 0 confirms symmetric laminate behavior</li>
+<li><strong>High fiber volume fraction</strong>: 59.7% leads to excellent longitudinal properties</li>
+</ol>
+
+<hr />
+
+<h2 id="problem-3-zero-shear-strain-constraint-problem-3">Problem 3: Zero Shear Strain Constraint {#problem-3}</h2>
+
+<h3 id="problem-statement-3">Problem Statement</h3>
+
+<p>For a laminate with stacking sequence <code>[30/θ₁/θ₂/-30]ₛ</code>, find angles θ₁ and θ₂ such that the mid-plane shear strain γ_xy⁰ = 0 under specified loading.</p>
+
+<h3 id="material-loading">Material &amp; Loading</h3>
+
+<p><strong>Material</strong>: Kevlar/Epoxy<br />
+- E₁ = 76 GPa<br />
+- E₂ = 5.50 GPa<br />
+- G₁₂ = 2.30 GPa<br />
+- ν₁₂ = 0.34<br />
+- t = 1.25 mm</p>
+
+<p><strong>Applied Loads:</strong><br />
+- N<em>x = 1000 N/m<br />
+- N</em>y = 1000 N/m<br />
+- N<em>xy = 0 N/m<br />
+- M</em>x = 0 N<br />
+- M<em>y = 50 N<br />
+- M</em>xy = 50 N</p>
+
+<h3 id="solution-approach">Solution Approach</h3>
+
+<p>Assuming θ₁ = θ₂ = θ for symmetric solution, use numerical optimization (scipy.fsolve) to find θ that produces zero shear strain.</p>
+
+<h3 id="results">Results</h3>
+
+<p><strong>Solution: θ = 0.00°</strong></p>
+
+<p><strong>Expanded Laminate:</strong> <code>[30/0/0/-30/-30/0/0/30]</code></p>
+
+<p><strong>Mid-plane Strains at Solution:</strong><br />
+- ε<em>x⁰ = -103,351.893 με<br />
+- ε</em>y⁰ = 12,696,682.555 με<br />
+- γ_xy⁰ = <strong>0.000000 με</strong> ✓ (constraint satisfied)</p>
+
+<p><strong>Curvatures at Solution:</strong><br />
+- κ<em>x = -0.024650 /mm<br />
+- κ</em>y = 0.066825 /mm<br />
+- κ_xy = 0.062002 /mm</p>
+
+<h3 id="visualization-2">Visualization</h3>
+
+<p><img src="assignment1_problem3_results.png" alt="Problem 3 Results" /></p>
+
+<p><strong>Figure 2</strong>: Mid-plane strains and curvatures vs. θ for <code>[30/θ/θ/-30]ₛ</code> laminate. The green line (γ_xy⁰) crosses zero at θ = 0°, marked by the magenta vertical line. The top plot shows strains, and the bottom shows curvatures.</p>
+
+<h3 id="physical-interpretation">Physical Interpretation</h3>
+
+<ol>
+<li><strong>Solution exists</strong>: The constraint γ_xy⁰ = 0 can be achieved by proper selection of θ</li>
+<li><strong>Sensitivity</strong>: Shear strain is highly sensitive to ply orientation</li>
+<li><strong>Design flexibility</strong>: Demonstrates ability to tailor laminate properties for specific constraints</li>
+<li><strong>Balanced configuration</strong>: θ = 0° creates a balanced arrangement around the outer ±30° plies</li>
+</ol>
+
+<hr />
+
+<h2 id="problem-3-version-2-alternative-stacking-sequence-problem-3-v2">Problem 3 (Version 2): Alternative Stacking Sequence {#problem-3-v2}</h2>
+
+<h3 id="problem-statement-4">Problem Statement</h3>
+
+<p>Same as Problem 3, but with stacking sequence <code>[30/θ₁/θ₂/30]ₛ</code> (outer plies both at +30° instead of ±30°).</p>
+
+<h3 id="solution">Solution</h3>
+
+<p><strong>Solution: θ = -30.00°</strong></p>
+
+<p><strong>Expanded Laminate:</strong> <code>[30/-30/-30/30/30/-30/-30/30]</code></p>
+
+<p>This creates a perfectly balanced alternating pattern!</p>
+
+<p><strong>Mid-plane Strains at Solution:</strong><br />
+- ε<em>x⁰ = -1,782,571.281 με<br />
+- ε</em>y⁰ = 12,231,160.188 με<br />
+- γ_xy⁰ = <strong>-0.000000 με</strong> ✓ (constraint satisfied)</p>
+
+<p><strong>Curvatures at Solution:</strong><br />
+- κ<em>x = -0.038655 /mm<br />
+- κ</em>y = 0.107890 /mm<br />
+- κ_xy = 0.039669 /mm</p>
+
+<p><strong>ABD Matrices at Solution:</strong></p>
+
+<p>Extensional Stiffness [A] (N/mm):</p>
+
+<pre><code>[[216.67  84.46  62.84]
+ [ 84.46 216.67  62.84]
+ [ 62.84  62.84  60.09]]
+</code></pre>
+
+<p>Coupling Stiffness [B] (N):</p>
+
+<pre><code>[[ 0.00  0.00  0.00]
+ [ 0.00  0.00  0.00]
+ [ 0.00  0.00  0.00]]
+</code></pre>
+
+<p>Bending Stiffness [D] (N·mm):</p>
+
+<pre><code>[[281.08 109.58  81.59]
+ [109.58 281.08  81.59]
+ [ 81.59  81.59  78.00]]
+</code></pre>
+
+<h3 id="visualization-3">Visualization</h3>
+
+<p><img src="assignment1_problem3_v2_results.png" alt="Problem 3 V2 Results" /></p>
+
+<p><strong>Figure 3</strong>: Mid-plane strains and curvatures vs. θ for <code>[30/θ/θ/30]ₛ</code> laminate. The solution occurs at θ = -30°, creating a balanced [30/-30] alternating pattern. Note the different scale compared to Problem 3 - strains are much larger in magnitude.</p>
+
+<h3 id="comparison-problem-3-vs-problem-3-v2">Comparison: Problem 3 vs. Problem 3 V2</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Aspect</th>
+  <th>[30/θ/θ/-30]ₛ</th>
+  <th>[30/θ/θ/30]ₛ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Solution θ</strong></td>
+  <td>0.00°</td>
+  <td>-30.00°</td>
+</tr>
+<tr>
+  <td><strong>Final Laminate</strong></td>
+  <td>[30/0/0/-30]ₛ</td>
+  <td>[30/-30/-30/30]ₛ</td>
+</tr>
+<tr>
+  <td><strong>Pattern</strong></td>
+  <td>Mixed angles</td>
+  <td>Alternating ±30°</td>
+</tr>
+<tr>
+  <td><strong>ε_x⁰ magnitude</strong></td>
+  <td>~100k με</td>
+  <td>~1.8M με</td>
+</tr>
+<tr>
+  <td><strong>ε_y⁰ magnitude</strong></td>
+  <td>~12.7M με</td>
+  <td>~12.2M με</td>
+</tr>
+<tr>
+  <td><strong>B matrix</strong></td>
+  <td>Non-zero</td>
+  <td>Zero (balanced)</td>
+</tr>
+<tr>
+  <td><strong>A₁₆, A₂₆</strong></td>
+  <td>~0 N/mm</td>
+  <td>~63 N/mm</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="key-insights-2">Key Insights</h3>
+
+<ol>
+<li><strong>Dramatic sensitivity</strong>: Changing outer ply from -30° to +30° changes solution from 0° to -30°</li>
+<li><strong>Balanced laminate advantage</strong>: V2 solution creates zero B matrix (no bending-extension coupling)</li>
+<li><strong>Strain magnitudes</strong>: V2 experiences much higher strains due to different load distribution</li>
+<li><strong>Design implications</strong>: Small changes in stacking sequence can dramatically affect optimal angles</li>
+</ol>
+
+<hr />
+
+<h2 id="problem-4-stiffness-matrix-comparison-problem-4">Problem 4: Stiffness Matrix Comparison {#problem-4}</h2>
+
+<h3 id="problem-statement-5">Problem Statement</h3>
+
+<p>Calculate and compare the extensional [A], coupling [B], and bending [D] stiffness matrices for two laminates:<br />
+- <strong>Part (a)</strong>: <code>[-45/45]</code><br />
+- <strong>Part (b)</strong>: <code>[-45/45/-45/45]</code></p>
+
+<p>Analyze how doubling the thickness by repeating the layup affects each stiffness matrix.</p>
+
+<h3 id="material-properties-2">Material Properties</h3>
+
+<ul>
+<li><strong>Material</strong>: AS/3501 Graphite-Epoxy</li>
+<li>E₁ = 181.0 GPa</li>
+<li>E₂ = 10.3 GPa</li>
+<li>G₁₂ = 7.17 GPa</li>
+<li>ν₁₂ = 0.28</li>
+<li>Ply thickness = 0.5 mm</li>
+</ul>
+
+<h3 id="results-2">Results</h3>
+
+<h4 id="part-a-laminate-4545">Part (a): Laminate [-45/45]</h4>
+
+<p><strong>Laminate Configuration:</strong><br />
+- Stacking: <code>[-45, 45]</code><br />
+- Number of plies: 2<br />
+- Total thickness: 1.0 mm<br />
+- Classification: Balanced, Non-symmetric</p>
+
+<p><strong>Extensional Stiffness [A] (N/mm):</strong></p>
+
+<pre><code>[[56.658  42.318   0.000]
+ [42.318  56.658   0.000]
+ [ 0.000   0.000  46.591]]
+</code></pre>
+
+<p><strong>Coupling Stiffness [B] (N):</strong></p>
+
+<pre><code>[[ 0.000   0.000  10.717]
+ [ 0.000   0.000  10.717]
+ [10.717  10.717   0.000]]
+</code></pre>
+
+<p><em>Note: B ≠ 0 because laminate is NOT symmetric</em></p>
+
+<p><strong>Bending Stiffness [D] (N·mm):</strong></p>
+
+<pre><code>[[4.721  3.526  0.000]
+ [3.526  4.721  0.000]
+ [0.000  0.000  3.883]]
+</code></pre>
+
+<h4 id="part-b-laminate-4545-4545">Part (b): Laminate [-45/45/-45/45]</h4>
+
+<p><strong>Laminate Configuration:</strong><br />
+- Stacking: <code>[-45, 45, -45, 45]</code><br />
+- Number of plies: 4<br />
+- Total thickness: 2.0 mm<br />
+- Classification: Balanced, Non-symmetric</p>
+
+<p><strong>Extensional Stiffness [A] (N/mm):</strong></p>
+
+<pre><code>[[113.316   84.636    0.000]
+ [ 84.636  113.316    0.000]
+ [  0.000    0.000   93.182]]
+</code></pre>
+
+<p><strong>Coupling Stiffness [B] (N):</strong></p>
+
+<pre><code>[[ 0.000   0.000  21.433]
+ [ 0.000   0.000  21.433]
+ [21.433  21.433   0.000]]
+</code></pre>
+
+<p><em>Note: B ≠ 0 because laminate is still NOT symmetric</em></p>
+
+<p><strong>Bending Stiffness [D] (N·mm):</strong></p>
+
+<pre><code>[[37.772  28.212   0.000]
+ [28.212  37.772   0.000]
+ [ 0.000   0.000  31.061]]
+</code></pre>
+
+<h3 id="comparative-analysis">Comparative Analysis</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Property</th>
+  <th>[-45/45]</th>
+  <th>[-45/45/-45/45]</th>
+  <th>Ratio</th>
+  <th>Expected Scaling</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Thickness</strong></td>
+  <td>1.0 mm</td>
+  <td>2.0 mm</td>
+  <td>2.0</td>
+  <td>Linear</td>
+</tr>
+<tr>
+  <td><strong>A₁₁</strong></td>
+  <td>56.658 N/mm</td>
+  <td>113.316 N/mm</td>
+  <td>2.00</td>
+  <td>h¹ → 2.0</td>
+</tr>
+<tr>
+  <td><strong>A₂₂</strong></td>
+  <td>56.658 N/mm</td>
+  <td>113.316 N/mm</td>
+  <td>2.00</td>
+  <td>h¹ → 2.0</td>
+</tr>
+<tr>
+  <td><strong>A₆₆</strong></td>
+  <td>46.591 N/mm</td>
+  <td>93.182 N/mm</td>
+  <td>2.00</td>
+  <td>h¹ → 2.0</td>
+</tr>
+<tr>
+  <td><strong>|B₁₆|</strong></td>
+  <td>10.717 N</td>
+  <td>21.433 N</td>
+  <td>2.00</td>
+  <td>h² → 4.0*</td>
+</tr>
+<tr>
+  <td><strong>|B₂₆|</strong></td>
+  <td>10.717 N</td>
+  <td>21.433 N</td>
+  <td>2.00</td>
+  <td>h² → 4.0*</td>
+</tr>
+<tr>
+  <td><strong>D₁₁</strong></td>
+  <td>4.721 N·mm</td>
+  <td>37.772 N·mm</td>
+  <td>8.00</td>
+  <td>h³ → 8.0</td>
+</tr>
+<tr>
+  <td><strong>D₂₂</strong></td>
+  <td>4.721 N·mm</td>
+  <td>37.772 N·mm</td>
+  <td>8.00</td>
+  <td>h³ → 8.0</td>
+</tr>
+<tr>
+  <td><strong>D₆₆</strong></td>
+  <td>3.883 N·mm</td>
+  <td>31.061 N·mm</td>
+  <td>8.00</td>
+  <td>h³ → 8.0</td>
+</tr>
+</tbody>
+</table>
+
+<p><em>*B matrix scaling depends on laminate symmetry and ply arrangement</em></p>
+
+<h3 id="key-findings">Key Findings</h3>
+
+<ol>
+<li><p><strong>Extensional Stiffness [A]:</strong></p>
+
+<ul>
+<li>Scales <strong>linearly</strong> with thickness (factor of 2.0)</li>
+<li>Formula: A<em>ij = ∫Q̄</em>ij dz</li>
+<li>Both laminates are balanced → A₁₆ = A₂₆ ≈ 0</li>
+</ul></li>
+<li><p><strong>Coupling Stiffness [B]:</strong></p>
+
+<ul>
+<li>Observed scaling factor of <strong>2.0</strong></li>
+<li>Formula: B<em>ij = ½∫Q̄</em>ij z dz</li>
+<li>Both laminates non-symmetric → B ≠ 0</li>
+<li>B couples in-plane loads with curvatures</li>
+<li>The factor of 2.0 (not 4.0) results from the specific layup repetition pattern</li>
+</ul></li>
+<li><p><strong>Bending Stiffness [D]:</strong></p>
+
+<ul>
+<li>Scales <strong>cubically</strong> with thickness (factor of 8.0)</li>
+<li>Formula: D<em>ij = ⅓∫Q̄</em>ij z² dz</li>
+<li>This demonstrates the high efficiency of thickness for bending resistance</li>
+<li>2× thickness → 8× bending stiffness!</li>
+</ul></li>
+</ol>
+
+<h3 id="design-implications">Design Implications</h3>
+
+<ol>
+<li><p><strong>For in-plane loading:</strong></p>
+
+<ul>
+<li>Add plies for linear increase in extensional stiffness</li>
+<li>Cost-effective way to increase membrane strength</li>
+</ul></li>
+<li><p><strong>For bending/flexural loading:</strong></p>
+
+<ul>
+<li>Increase thickness for cubic gain in bending stiffness</li>
+<li>Much more efficient than adding plies for bending applications</li>
+<li>Critical for plate/shell structures</li>
+</ul></li>
+<li><p><strong>For uncoupled behavior:</strong></p>
+
+<ul>
+<li>Use symmetric layups to eliminate [B] matrix</li>
+<li>Prevents coupling between in-plane and out-of-plane deformations</li>
+</ul></li>
+<li><p><strong>Laminate classification:</strong></p>
+
+<ul>
+<li>Both laminates are <strong>balanced</strong> (no shear-extension coupling)</li>
+<li>Neither is <strong>symmetric</strong> (B ≠ 0, causes extension-bending coupling)</li>
+</ul></li>
+</ol>
+
+<h3 id="results-validation">Results Validation</h3>
+
+<p>To verify the accuracy of our custom <code>composite_lib</code> implementation, the ABD matrices were cross-checked using ABDComposites.com's online calculator tool. The validation screenshots below confirm that our computed values match the industry-standard tool.</p>
+
+<h4 id="validation-laminate-4545">Validation: Laminate [-45/45]</h4>
+
+<p><img src="problem4_validation_laminate1.png" alt="Problem 4 Validation - Laminate 1" /></p>
+
+<p><strong>Figure 4a</strong>: ABDComposites.com validation for [-45/45] laminate showing identical A, B, and D matrix values to our calculations.</p>
+
+<h4 id="validation-laminate-4545-4545">Validation: Laminate [-45/45/-45/45]</h4>
+
+<p><img src="problem4_validation_laminate2.png" alt="Problem 4 Validation - Laminate 2" /></p>
+
+<p><strong>Figure 4b</strong>: ABDComposites.com validation for [-45/45/-45/45] laminate confirming our implementation accuracy.</p>
+
+<p><strong>Validation Notes:</strong><br />
+- ✅ All extensional stiffness [A] values match exactly<br />
+- ✅ All coupling stiffness [B] values match exactly<br />
+- ✅ All bending stiffness [D] values match exactly<br />
+- ✅ Confirms the reliability of our Python implementation for Classical Laminated Plate Theory<br />
+- ✅ Validates the Q-bar transformation matrices and ABD integration algorithms</p>
+
+<p>This independent verification demonstrates that the <code>composite_lib</code> toolkit produces accurate, industry-standard results suitable for engineering analysis and design applications.</p>
+
+<hr />
+
+<h2 id="summary-and-conclusions-summary">Summary and Conclusions {#summary}</h2>
+
+<h3 id="overall-findings">Overall Findings</h3>
+
+<ol>
+<li><p><strong>Quasi-Isotropy (Problem 1)</strong></p>
+
+<ul>
+<li>Confirmed that [-45/0/45/90] configuration achieves perfect quasi-isotropy</li>
+<li>Requires equal angular spacing (180°/n where n = number of unique angles)</li>
+<li>30° spacing [0/30/60/90] is insufficient</li>
+</ul></li>
+<li><p><strong>Micromechanics (Problem 2)</strong></p>
+
+<ul>
+<li>Successfully predicted lamina properties from constituent materials</li>
+<li>Fiber volume fraction of 59.7% yields excellent longitudinal stiffness</li>
+<li>[0/90]ₛ laminate shows balanced properties with E<em>x = E</em>y</li>
+</ul></li>
+<li><p><strong>Constrained Design (Problem 3 &amp; 3-V2)</strong></p>
+
+<ul>
+<li>Zero shear strain constraint can be satisfied through angle optimization</li>
+<li>Multiple solutions exist depending on outer ply configuration</li>
+<li>Balanced laminates (alternating ±θ) eliminate bending-extension coupling</li>
+</ul></li>
+</ol>
+
+<h3 id="methodology-validation">Methodology Validation</h3>
+
+<p>The Python-based <code>composite_lib</code> successfully handles:<br />
+- ✅ Q-matrix calculation and transformation<br />
+- ✅ ABD matrix assembly for symmetric and asymmetric laminates<br />
+- ✅ Micromechanics (Rule of Mixtures, Halpin-Tsai)<br />
+- ✅ Strain and curvature calculations under combined loading<br />
+- ✅ Numerical optimization for constrained design</p>
+
+<h3 id="design-recommendations">Design Recommendations</h3>
+
+<ol>
+<li><strong>For quasi-isotropic behavior</strong>: Use n ≥ 3 plies with angular spacing of 180°/n</li>
+<li><strong>For zero coupling</strong>: Ensure symmetric and balanced layups</li>
+<li><strong>For specific constraints</strong>: Use optimization to find optimal ply angles</li>
+<li><strong>For high stiffness</strong>: Maximize fiber volume fraction and align fibers with load direction</li>
+</ol>
+
+<h3 id="future-work">Future Work</h3>
+
+<ul>
+<li>Extend analysis to unsymmetric laminates</li>
+<li>Include failure analysis (Tsai-Wu, maximum stress criteria)</li>
+<li>Investigate thermal effects</li>
+<li>Study impact of manufacturing defects on properties</li>
+</ul>
+
+<hr />
+
+<h2 id="appendices">Appendices</h2>
+
+<h3 id="a-computational-tools-used">A. Computational Tools Used</h3>
+
+<ul>
+<li><strong>Python 3.12.4</strong></li>
+<li><strong>Libraries</strong>: NumPy, SciPy, Matplotlib, Plotly, Streamlit</li>
+<li><strong>Custom Library</strong>: <code>composite_lib</code> (laminate.py, lamina.py, micromechanics.py)</li>
+<li><strong>Optimization</strong>: scipy.optimize.fsolve for nonlinear constraint satisfaction</li>
+</ul>
+
+<h3 id="b-repository-structure">B. Repository Structure</h3>
+
+<pre><code>STP604E/
+├── assignments/
+│   ├── assignment1_problem1.py
+│   ├── assignment1_problem2.py
+│   ├── assignment1_problem3.py
+│   └── assignment1_problem3_v2.py
+├── composite_lib/
+│   ├── lamina.py
+│   ├── laminate.py
+│   └── micromechanics.py
+├── visualization/
+│   └── composite_visualizer.py
+├── run_visualizer.py
+├── solve_assignments.py
+└── ASSIGNMENT_RESULTS.md (this file)
+</code></pre>
+
+<h3 id="c-how-to-run">C. How to Run</h3>
+
+<div class="codehilite">
+<pre><span></span><code><span class="c1"># Run all assignments interactively</span>
+python<span class="w"> </span>solve_assignments.py
+
+<span class="c1"># Run specific problem</span>
+python<span class="w"> </span>solve_assignments.py<span class="w"> </span><span class="m">1</span>
+
+<span class="c1"># Launch 3D visualizer</span>
+python<span class="w"> </span>run_visualizer.py
+
+<span class="c1"># Run individual files</span>
+python<span class="w"> </span>assignments/assignment1_problem1.py
+python<span class="w"> </span>assignments/assignment1_problem2.py
+python<span class="w"> </span>assignments/assignment1_problem3.py
+python<span class="w"> </span>assignments/assignment1_problem3_v2.py
+</code></pre>
+</div>
+
+<hr />
+
+<p><strong>Document Generated</strong>: November 8, 2025<br />
+<strong>Analysis Tool</strong>: Python with composite_lib<br />
+<strong>Course</strong>: STP 604E - Advanced Design, Analysis and Optimization of Composite Structure for Aerospace<br />
+<strong>GitHub Repository</strong>: https://github.com/gyillikci/STP604E  </p>
+
+
+<footer style="margin-top: 60px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #777; font-size: 0.9em;">
+    <p>Generated on November 10, 2025 | STP 604E - Composite Materials</p>
+</footer>
+</body>
+</html>

@@ -1,17 +1,17 @@
 """
-Assignment 1 - Problem 3: Laminate Analysis with Constraint
+Assignment 1 - Problem 3 (Version 2): Laminate Analysis with Constraint
 
 Problem Statement:
-Consider a laminate with stacking sequence [30/θ₁/θ₂/-30]_s subjected to:
+Consider a laminate with stacking sequence [30/theta1/theta2/30]_s subjected to:
   N_x = N_y = 1000 N/m
   M_y = M_xy = 50 N
 
 Material: Kevlar/Epoxy
-  E₁ = 76 GPa, E₂ = 5.50 GPa, G₁₂ = 2.30 GPa, ν₁₂ = 0.34, t = 1.25 mm
+  E1 = 76 GPa, E2 = 5.50 GPa, G12 = 2.30 GPa, nu12 = 0.34, t = 1.25 mm
 
-Constraint: No shear strain (γ_xy⁰ = 0)
+Constraint: No shear strain (gamma_xy0 = 0)
 
-Determine and plot mid-plane strains and curvatures as a function of θ.
+Determine and plot mid-plane strains and curvatures as a function of theta.
 """
 
 import numpy as np
@@ -24,13 +24,16 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from composite_lib import Laminate
 
 
-def solve_problem3():
+def solve_problem3_v2():
     """
-    Solve Assignment 1 - Problem 3
-    Find θ₁ and θ₂ such that γ_xy = 0
+    Solve Assignment 1 - Problem 3 (Version 2)
+    Find theta1 and theta2 such that gamma_xy = 0
+    For laminate [30/theta/theta/30]_s
     """
     print("\n" + "="*70)
-    print("ASSIGNMENT 1 - PROBLEM 3: LAMINATE WITH ZERO SHEAR STRAIN")
+    print("ASSIGNMENT 1 - PROBLEM 3 (V2): LAMINATE WITH ZERO SHEAR STRAIN")
+    print("="*70)
+    print("Stacking: [30/theta/theta/30]_s")
     print("="*70)
 
     # Material properties - Kevlar/Epoxy
@@ -69,6 +72,7 @@ def solve_problem3():
     print(f"  M_xy = {Mxy} N")
 
     print("\nStacking Sequence: [30/theta1/theta2/30]_s")
+    print("Expanded: [30/theta/theta/30/30/theta/theta/30]")
     print("Constraint: gamma_xy0 = 0 (zero mid-plane shear strain)")
 
     # Approach: Assume theta1 = theta2 = theta for simplicity and symmetry
@@ -86,13 +90,13 @@ def solve_problem3():
         stacking = [30, theta_val, theta_val, 30, 30, theta_val, theta_val, 30]
         lam = Laminate(material, stacking, t)
         strains, _ = lam.calculate_strains_curvatures(loads)
-        return strains[2]  # γ_xy
+        return strains[2]  # gamma_xy
 
     # Find theta that gives zero shear strain
     theta_initial_guess = 0
     theta_solution = fsolve(shear_strain_constraint, theta_initial_guess)[0]
 
-    print(f"\nSolution: θ = {theta_solution:.2f}°")
+    print(f"\nSolution: theta = {theta_solution:.2f} degrees")
 
     # Verify solution
     stacking_solution = [30, theta_solution, theta_solution, 30,
@@ -101,12 +105,27 @@ def solve_problem3():
     strains_sol, curvatures_sol = lam_solution.calculate_strains_curvatures(loads)
 
     print(f"\nVerification with theta = {theta_solution:.2f} degrees:")
-    print(f"  epsilon_x0  = {strains_sol[0]*1e6:.3f} microstrain")
+    print(f"  Stacking: [30/{theta_solution:.1f}/{theta_solution:.1f}/30/30/{theta_solution:.1f}/{theta_solution:.1f}/30]")
+    print(f"\n  epsilon_x0  = {strains_sol[0]*1e6:.3f} microstrain")
     print(f"  epsilon_y0  = {strains_sol[1]*1e6:.3f} microstrain")
-    print(f"  gamma_xy0 = {strains_sol[2]*1e6:.6f} microstrain  <- Should be approx 0")
-    print(f"\n  kappa_x   = {curvatures_sol[0]:.6f} /mm")
-    print(f"  kappa_y   = {curvatures_sol[1]:.6f} /mm")
-    print(f"  kappa_xy  = {curvatures_sol[2]:.6f} /mm")
+    print(f"  gamma_xy0   = {strains_sol[2]*1e6:.6f} microstrain  <- Should be approx 0")
+    print(f"\n  kappa_x     = {curvatures_sol[0]:.6f} /mm")
+    print(f"  kappa_y     = {curvatures_sol[1]:.6f} /mm")
+    print(f"  kappa_xy    = {curvatures_sol[2]:.6f} /mm")
+
+    # Display ABD matrices
+    print("\n" + "-"*70)
+    print("ABD MATRICES at Solution")
+    print("-"*70)
+    
+    print("\nExtensional Stiffness [A] (N/mm):")
+    print(lam_solution.A)
+    
+    print("\nCoupling Stiffness [B] (N):")
+    print(lam_solution.B)
+    
+    print("\nBending Stiffness [D] (N*mm):")
+    print(lam_solution.D)
 
     # Step 2: Plot strains and curvatures vs theta
     print("\n" + "-"*70)
@@ -122,6 +141,8 @@ def solve_problem3():
     curv_y = []
     curv_xy = []
 
+    print("\nCalculating strains and curvatures for 181 theta values...")
+    
     for theta in theta_range:
         stacking = [30, theta, theta, 30, 30, theta, theta, 30]
         lam = Laminate(material, stacking, t)
@@ -148,25 +169,31 @@ def solve_problem3():
 The analysis shows that for the laminate [30/theta/theta/30]_s:
 
 1. Zero Shear Strain Condition:
-   - The angle θ ≈ {theta_solution:.2f}° produces zero mid-plane shear strain
-   - This is due to the balanced arrangement of plies around this angle
+   - The angle theta = {theta_solution:.2f} degrees produces zero mid-plane shear strain
+   - This creates the laminate [30/{theta_solution:.1f}/{theta_solution:.1f}/30]_s
+   - The solution is symmetric and balanced
 
 2. Strain Behavior:
-   - ε_x⁰ and ε_y⁰ vary with θ but remain relatively stable
-   - γ_xy⁰ varies significantly, crossing zero at θ = {theta_solution:.2f}°
+   - epsilon_x0 and epsilon_y0 vary significantly with theta
+   - gamma_xy0 varies and crosses zero at theta = {theta_solution:.2f} degrees
    - The shear strain is highly sensitive to ply orientation
 
 3. Curvature Behavior:
-   - All curvatures show variation with θ
+   - All curvatures show variation with theta
    - The coupling between bending moments and curvatures depends on
      the laminate stacking sequence
-   - Even with symmetric layup, [B] ≠ 0 for non-symmetric angles
+   - Even with symmetric layup, [B] matrix is non-zero for non-symmetric angles
 
 4. Physical Interpretation:
-   - The constraint γ_xy⁰ = 0 can be achieved by proper selection of θ
+   - The constraint gamma_xy0 = 0 can be achieved by proper selection of theta
+   - For [30/theta/theta/30]_s, the solution is theta = {theta_solution:.2f} degrees
    - This demonstrates the design flexibility of composite laminates
    - Such constraints are important in applications requiring specific
      deformation patterns
+
+5. Comparison with [30/theta/theta/-30]_s:
+   - Changing the outer ply from -30 to +30 degrees significantly affects the solution
+   - Different ply arrangements produce different optimal angles for zero shear strain
     """)
 
     print("="*70 + "\n")
@@ -176,6 +203,11 @@ The analysis shows that for the laminate [30/theta/theta/30]_s:
         'strains': strains_sol,
         'curvatures': curvatures_sol,
         'theta_range': theta_range,
+        'ABD': {
+            'A': lam_solution.A,
+            'B': lam_solution.B,
+            'D': lam_solution.D
+        },
         'results': {
             'strains_x': strains_x,
             'strains_y': strains_y,
@@ -192,36 +224,44 @@ def create_plots(theta_range, theta_sol, sx, sy, sxy, kx, ky, kxy,
     """Create publication-quality plots"""
 
     fig, axes = plt.subplots(2, 1, figsize=(12, 10))
-    fig.suptitle('Assignment 1 - Problem 3: Mid-Plane Strains and Curvatures vs. θ',
+    fig.suptitle('Assignment 1 - Problem 3 (V2): Mid-Plane Strains and Curvatures vs. theta\n' +
+                 'Laminate: [30/theta/theta/30]_s',
                  fontsize=14, fontweight='bold')
 
     # Strains plot
-    axes[0].plot(theta_range, sx, 'b-', linewidth=2, label='ε_x⁰')
-    axes[0].plot(theta_range, sy, 'r-', linewidth=2, label='ε_y⁰')
-    axes[0].plot(theta_range, sxy, 'g-', linewidth=2, label='γ_xy⁰')
+    axes[0].plot(theta_range, sx, 'b-', linewidth=2, label='epsilon_x0')
+    axes[0].plot(theta_range, sy, 'r-', linewidth=2, label='epsilon_y0')
+    axes[0].plot(theta_range, sxy, 'g-', linewidth=2, label='gamma_xy0')
     axes[0].axhline(y=0, color='k', linestyle='--', linewidth=0.8, alpha=0.5)
     axes[0].axvline(x=theta_sol, color='m', linestyle=':', linewidth=2,
-                   label=f'θ = {theta_sol:.2f}° (γ_xy⁰=0)')
+                   label=f'theta = {theta_sol:.2f} deg (gamma_xy0=0)')
 
     # Mark the solution point
     idx_sol = np.argmin(np.abs(theta_range - theta_sol))
-    axes[0].plot(theta_sol, sxy[idx_sol], 'mo', markersize=10,
-                label=f'Solution: γ_xy⁰≈0')
+    axes[0].plot(theta_sol, sxy[idx_sol], 'mo', markersize=12,
+                label=f'Solution: gamma_xy0 approx 0', zorder=5)
 
-    axes[0].set_xlabel('θ [degrees]', fontsize=11)
+    axes[0].set_xlabel('theta [degrees]', fontsize=11)
     axes[0].set_ylabel('Mid-Plane Strains [microstrain]', fontsize=11)
     axes[0].set_title('Mid-Plane Strains for [30/theta/theta/30]_s', fontsize=12, fontweight='bold')
     axes[0].legend(loc='best', fontsize=9)
     axes[0].grid(True, alpha=0.3)
     axes[0].set_xlim([-90, 90])
 
+    # Add text annotation with solution
+    axes[0].text(0.02, 0.98, f'Solution: theta = {theta_sol:.2f} deg',
+                transform=axes[0].transAxes,
+                fontsize=10, fontweight='bold',
+                verticalalignment='top',
+                bbox=dict(boxstyle='round', facecolor='yellow', alpha=0.7))
+
     # Curvatures plot
-    axes[1].plot(theta_range, kx, 'b-', linewidth=2, label='κ_x')
-    axes[1].plot(theta_range, ky, 'r-', linewidth=2, label='κ_y')
-    axes[1].plot(theta_range, kxy, 'g-', linewidth=2, label='κ_xy')
+    axes[1].plot(theta_range, kx, 'b-', linewidth=2, label='kappa_x')
+    axes[1].plot(theta_range, ky, 'r-', linewidth=2, label='kappa_y')
+    axes[1].plot(theta_range, kxy, 'g-', linewidth=2, label='kappa_xy')
     axes[1].axhline(y=0, color='k', linestyle='--', linewidth=0.8, alpha=0.5)
     axes[1].axvline(x=theta_sol, color='m', linestyle=':', linewidth=2,
-                   label=f'θ = {theta_sol:.2f}° (γ_xy⁰=0)')
+                   label=f'theta = {theta_sol:.2f} deg (gamma_xy0=0)')
 
     axes[1].set_xlabel('theta [degrees]', fontsize=11)
     axes[1].set_ylabel('Curvatures [/mm]', fontsize=11)
@@ -231,9 +271,26 @@ def create_plots(theta_range, theta_sol, sx, sy, sxy, kx, ky, kxy,
     axes[1].set_xlim([-90, 90])
 
     plt.tight_layout()
-    plt.savefig('assignment1_problem3_results.png', dpi=300, bbox_inches='tight')
-    print("\n✓ Plots saved to 'assignment1_problem3_results.png'")
+    filename = 'assignment1_problem3_v2_results.png'
+    plt.savefig(filename, dpi=300, bbox_inches='tight')
+    print(f"\nPlots saved to '{filename}'")
 
 
 if __name__ == "__main__":
-    solve_problem3()
+    results = solve_problem3_v2()
+    
+    print("\n" + "="*70)
+    print("SUMMARY")
+    print("="*70)
+    print(f"Laminate: [30/theta/theta/30]_s")
+    print(f"Solution: theta = {results['theta_solution']:.2f} degrees")
+    print(f"Expanded: [30/{results['theta_solution']:.1f}/{results['theta_solution']:.1f}/30/30/{results['theta_solution']:.1f}/{results['theta_solution']:.1f}/30]")
+    print(f"\nMid-plane strains at solution:")
+    print(f"  epsilon_x0 = {results['strains'][0]*1e6:.3f} microstrain")
+    print(f"  epsilon_y0 = {results['strains'][1]*1e6:.3f} microstrain")
+    print(f"  gamma_xy0  = {results['strains'][2]*1e6:.6f} microstrain (approx 0)")
+    print(f"\nCurvatures at solution:")
+    print(f"  kappa_x  = {results['curvatures'][0]:.6f} /mm")
+    print(f"  kappa_y  = {results['curvatures'][1]:.6f} /mm")
+    print(f"  kappa_xy = {results['curvatures'][2]:.6f} /mm")
+    print("="*70 + "\n")
