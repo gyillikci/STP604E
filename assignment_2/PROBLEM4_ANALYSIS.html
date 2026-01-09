@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Assignment 2 - Problem 4 Derivation</title>
+    <style>
+    @media print { 
+        @page { size: A4; margin: 1.5cm; } 
+        body { font-size: 10pt; } 
+        img { max-width: 100% !important; height: auto !important; page-break-inside: avoid; } 
+        .graph-container { page-break-inside: avoid; margin: 20px 0; }
+    }
+    body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; max-width: 900px; margin: 0 auto; padding: 20px; color: #333; }
+    h1 { color: #1a1a1a; font-size: 28px; border-bottom: 3px solid #2c5aa0; padding-bottom: 10px; text-align: center; }
+    h2 { color: #2c5aa0; font-size: 20px; border-bottom: 2px solid #7ba7d8; padding-bottom: 8px; margin-top: 30px; }
+    h3 { color: #34495e; font-size: 16px; margin-top: 20px; }
+    .header-info { text-align: center; margin-bottom: 30px; color: #666; }
+    .success-box { background-color: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; }
+    .success-box h2 { color: #28a745; border: none; margin: 0; }
+    table { border-collapse: collapse; width: 100%; margin: 20px 0; font-size: 14px; }
+    th { background-color: #2c5aa0; color: white; font-weight: bold; padding: 12px 8px; text-align: left; border: 1px solid #1e3d6f; }
+    td { padding: 10px 8px; border: 1px solid #ddd; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .check-mark { color: #28a745; font-weight: bold; }
+    .highlight { background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107; margin: 15px 0; }
+    footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; text-align: center; color: #777; font-size: 0.9em; }
+    pre { background-color: #f8f8f8; border: 1px solid #ddd; border-left: 4px solid #2c5aa0; border-radius: 4px; padding: 15px; font-family: 'Consolas', monospace; font-size: 12px; overflow-x: auto; }
+    .best { background-color: #d4edda; font-weight: bold; }
+    .formula-box { background-color: #e8f4fd; border: 2px solid #2c5aa0; border-radius: 8px; padding: 20px; margin: 20px 0; text-align: center; font-size: 16px; }
+    .graph-container { margin: 30px 0; text-align: center; }
+    .graph-container img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 5px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .img-caption { text-align: center; font-style: italic; color: #666; margin-top: 10px; font-size: 13px; }
+</style>
+</head>
+<body>
+
+<h1>Assignment 2 - Problem 4 Derivation</h1>
+
+<div class="header-info">
+    <p><strong>Course:</strong> STP604E - Advanced Design, Analysis and Optimization of Composite Structure for Aerospace</p>
+    <p><strong>Student:</strong> Giray Yıllıkçı</p>
+    <p><strong>Date:</strong> December 24, 2025</p>
+</div>
+
+<div class="success-box">
+    <h2>✅ Mathematical Derivation Complete</h2>
+</div>
+
+<h2>Problem Statement</h2>
+<p>Derive the formula for the bending stiffness matrix <strong>D</strong> of a laminate composed of two sublaminates <strong>M</strong> and <strong>N</strong>.</p>
+
+<div class="formula-box">
+    <strong>D<sub>MN</sub> = D<sub>M</sub> + D<sub>N</sub> + (t<sub>N</sub>²/4)A<sub>M</sub> + (t<sub>M</sub>²/4)A<sub>N</sub> − t<sub>N</sub>B<sub>M</sub> + t<sub>M</sub>B<sub>N</sub></strong>
+</div>
+
+<h3>Variables</h3>
+<table>
+    <tr><th>Symbol</th><th>Description</th></tr>
+    <tr><td>D<sub>MN</sub></td><td>Bending stiffness of combined laminate</td></tr>
+    <tr><td>D<sub>M</sub>, D<sub>N</sub></td><td>Bending stiffness matrices of sublaminates</td></tr>
+    <tr><td>A<sub>M</sub>, A<sub>N</sub></td><td>Extensional stiffness matrices of sublaminates</td></tr>
+    <tr><td>B<sub>M</sub>, B<sub>N</sub></td><td>Bending-extension coupling matrices</td></tr>
+    <tr><td>t<sub>M</sub>, t<sub>N</sub></td><td>Total thicknesses of sublaminates</td></tr>
+</table>
+
+<h2>Derivation</h2>
+
+<h3>Step 1: Define Coordinate Systems</h3>
+<p>Consider two sublaminates: <strong>M</strong> (bottom) and <strong>N</strong> (top)</p>
+<ul>
+    <li><strong>Global system:</strong> Origin at mid-plane of combined laminate</li>
+    <li><strong>Local system M:</strong> Origin at mid-plane of sublaminate M</li>
+    <li><strong>Local system N:</strong> Origin at mid-plane of sublaminate N</li>
+</ul>
+
+<h3>Step 2: Coordinate Transformations</h3>
+<p><strong>For sublaminate M (bottom):</strong></p>
+<pre>z = z<sub>M</sub> − t<sub>N</sub>/2</pre>
+<p>Thus: z<sub>M</sub> = z + t<sub>N</sub>/2</p>
+
+<p><strong>For sublaminate N (top):</strong></p>
+<pre>z = z<sub>N</sub> + t<sub>M</sub>/2</pre>
+<p>Thus: z<sub>N</sub> = z − t<sub>M</sub>/2</p>
+
+<h3>Step 3: Transform D<sub>M</sub> to Global Coordinates</h3>
+<p>Using the binomial expansion of (z<sub>M</sub> − t<sub>N</sub>/2)³:</p>
+<pre>
+(z<sub>M</sub> − t<sub>N</sub>/2)³ = z<sub>M</sub>³ − (3t<sub>N</sub>/2)z<sub>M</sub>² + (3t<sub>N</sub>²/4)z<sub>M</sub> − t<sub>N</sub>³/8
+</pre>
+
+<p>Recognizing the CLT definitions:</p>
+<ul>
+    <li>∫Q̄(z³) → D<sub>M</sub></li>
+    <li>∫Q̄(z²) → B<sub>M</sub></li>
+    <li>∫Q̄(z) → A<sub>M</sub></li>
+</ul>
+
+<p>We obtain:</p>
+<pre>D<sub>M</sub><sup>global</sup> = D<sub>M</sub> − t<sub>N</sub>·B<sub>M</sub> + (t<sub>N</sub>²/4)·A<sub>M</sub></pre>
+
+<h3>Step 4: Transform D<sub>N</sub> to Global Coordinates</h3>
+<p>Similarly, using (z<sub>N</sub> + t<sub>M</sub>/2)³:</p>
+<pre>D<sub>N</sub><sup>global</sup> = D<sub>N</sub> + t<sub>M</sub>·B<sub>N</sub> + (t<sub>M</sub>²/4)·A<sub>N</sub></pre>
+
+<h3>Step 5: Combine Results</h3>
+<p>The total bending stiffness:</p>
+<pre>D<sub>MN</sub> = D<sub>M</sub><sup>global</sup> + D<sub>N</sub><sup>global</sup></pre>
+
+<div class="formula-box">
+    <strong>D<sub>MN</sub> = D<sub>M</sub> + D<sub>N</sub> + (t<sub>N</sub>²/4)A<sub>M</sub> + (t<sub>M</sub>²/4)A<sub>N</sub> − t<sub>N</sub>B<sub>M</sub> + t<sub>M</sub>B<sub>N</sub></strong>
+    <br><br><em>Q.E.D.</em>
+</div>
+
+<h2>Physical Interpretation</h2>
+
+<table>
+    <tr><th>Term</th><th>Physical Meaning</th></tr>
+    <tr><td>D<sub>M</sub> + D<sub>N</sub></td><td>Direct sum of bending stiffnesses</td></tr>
+    <tr><td>(t²/4)·A</td><td><strong>Parallel axis theorem:</strong> Extensional stiffness contributes to bending when offset from neutral axis</td></tr>
+    <tr><td>±t·B</td><td><strong>Coupling corrections:</strong> Asymmetry adjustments for global coordinate system</td></tr>
+</table>
+
+<h2>Special Cases</h2>
+
+<h3>Case 1: Symmetric Sublaminates (B<sub>M</sub> = B<sub>N</sub> = 0)</h3>
+<pre>D<sub>MN</sub> = D<sub>M</sub> + D<sub>N</sub> + (t<sub>N</sub>²/4)A<sub>M</sub> + (t<sub>M</sub>²/4)A<sub>N</sub></pre>
+
+<h3>Case 2: Equal Thickness (t<sub>M</sub> = t<sub>N</sub> = t/2)</h3>
+<pre>D<sub>MN</sub> = D<sub>M</sub> + D<sub>N</sub> + (t²/16)(A<sub>M</sub> + A<sub>N</sub>) + (t/2)(B<sub>N</sub> − B<sub>M</sub>)</pre>
+
+<h2>Applications</h2>
+<ul>
+    <li><strong>Sandwich composites:</strong> Face sheets separated by core</li>
+    <li><strong>Hybrid laminates:</strong> Combining different material systems</li>
+    <li><strong>Repair patches:</strong> Adding reinforcement to existing structures</li>
+    <li><strong>Computational efficiency:</strong> Pre-computing sublaminate properties</li>
+    <li><strong>Modular design:</strong> Building-block approaches in structural analysis</li>
+</ul>
+
+<h2>References</h2>
+<ol>
+    <li>Jones, R.M., <em>Mechanics of Composite Materials</em>, 2nd ed., Taylor & Francis, 1999.</li>
+    <li>Hyer, M.W., <em>Stress Analysis of Fiber-Reinforced Composite Materials</em>, DEStech Publications, 2009.</li>
+    <li>Reddy, J.N., <em>Mechanics of Laminated Composite Plates and Shells</em>, 2nd ed., CRC Press, 2004.</li>
+</ol>
+
+<footer>
+    <p>Generated on December 24, 2025 at 20:59 | STP604E - Assignment 2</p>
+</footer>
+
+</body>
+</html>
