@@ -542,3 +542,109 @@ print(f"""
 │    ✓ Bending slope: 0.0808 mm/N ✓ (calculated: 0.0814 mm/N)      │
 └────────────────────────────────────────────────────────────────────┘
 """)
+
+# =============================================================================
+# VISUALIZATION
+# =============================================================================
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+from matplotlib.patches import FancyBboxPatch
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# --- Left plot: Laminate cross-section with ply orientations ---
+ax1 = axes[0]
+
+# Colors for different ply angles
+angle_colors = {
+    0: '#2E86AB',    # Blue
+    90: '#A23B72',   # Magenta
+    45: '#F18F01',   # Orange
+    -45: '#C73E1D'   # Red
+}
+
+# Best solution stacking sequence
+stacking = [45, -45, 0, 90, 90, 0, -45, 45]
+n_plies_vis = len(stacking)
+h_vis = n_plies_vis * t_ply
+
+# Draw plies
+for i, angle in enumerate(stacking):
+    z_bot = -h_vis/2 + i * t_ply
+    rect = plt.Rectangle((-2, z_bot), 4, t_ply, 
+                         facecolor=angle_colors[angle], 
+                         edgecolor='black', linewidth=1)
+    ax1.add_patch(rect)
+    # Add angle label
+    ax1.text(0, z_bot + t_ply/2, f'{angle}°', 
+             ha='center', va='center', fontsize=12, fontweight='bold', color='white')
+    # Ply number on the right
+    ax1.text(2.3, z_bot + t_ply/2, f'Ply {i+1}', 
+             ha='left', va='center', fontsize=9)
+
+# Z-axis labels
+ax1.axhline(0, color='gray', linestyle='--', linewidth=0.5, label='Mid-plane')
+ax1.text(-2.5, 0, 'z=0', ha='right', va='center', fontsize=9, color='gray')
+ax1.text(-2.5, -h_vis/2, f'z=-{h_vis/2}', ha='right', va='center', fontsize=9)
+ax1.text(-2.5, h_vis/2, f'z=+{h_vis/2}', ha='right', va='center', fontsize=9)
+
+# Symmetry line
+ax1.annotate('', xy=(3, 0), xytext=(3, h_vis/2),
+             arrowprops=dict(arrowstyle='<->', color='green', lw=2))
+ax1.annotate('', xy=(3, 0), xytext=(3, -h_vis/2),
+             arrowprops=dict(arrowstyle='<->', color='green', lw=2))
+ax1.text(3.3, 0, 'Symmetric', ha='left', va='center', fontsize=10, color='green', rotation=90)
+
+ax1.set_xlim(-4, 5)
+ax1.set_ylim(-1.5, 1.5)
+ax1.set_aspect('equal')
+ax1.set_xlabel('Width (arbitrary)', fontsize=11)
+ax1.set_ylabel('z (mm)', fontsize=11)
+ax1.set_title('[±45/0/90]s Laminate Cross-Section', fontsize=13, fontweight='bold')
+
+# Legend
+legend_patches = [mpatches.Patch(color=angle_colors[0], label='0° plies'),
+                  mpatches.Patch(color=angle_colors[90], label='90° plies'),
+                  mpatches.Patch(color=angle_colors[45], label='+45° plies'),
+                  mpatches.Patch(color=angle_colors[-45], label='-45° plies')]
+ax1.legend(handles=legend_patches, loc='upper left', fontsize=9)
+
+# --- Right plot: Comparison bar chart ---
+ax2 = axes[1]
+
+categories = ['Tensile\nElongation', 'Bending\nSlope']
+experimental = [0.0897, 0.0808]
+calculated = [0.0897, 0.0814]
+
+x = np.arange(len(categories))
+width = 0.35
+
+bars1 = ax2.bar(x - width/2, experimental, width, label='Experimental', color='#2E86AB', edgecolor='black')
+bars2 = ax2.bar(x + width/2, calculated, width, label='Calculated [±45/0/90]s', color='#F18F01', edgecolor='black')
+
+# Add value labels
+for bar, val in zip(bars1, experimental):
+    ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.002, 
+             f'{val:.4f}', ha='center', va='bottom', fontsize=10)
+for bar, val in zip(bars2, calculated):
+    ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.002, 
+             f'{val:.4f}', ha='center', va='bottom', fontsize=10)
+
+# Error annotations
+errors = [0.0, 0.78]
+for i, (exp, calc, err) in enumerate(zip(experimental, calculated, errors)):
+    ax2.annotate(f'Error: {err:.2f}%', xy=(i, max(exp, calc) + 0.012), 
+                 ha='center', fontsize=10, color='green', fontweight='bold')
+
+ax2.set_ylabel('Value (mm or mm/N)', fontsize=11)
+ax2.set_title('Experimental vs. Calculated Results', fontsize=13, fontweight='bold')
+ax2.set_xticks(x)
+ax2.set_xticklabels(categories, fontsize=11)
+ax2.legend(loc='upper right', fontsize=10)
+ax2.set_ylim(0, 0.12)
+ax2.grid(axis='y', alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('problem2_stacking_sequence.png', dpi=150, bbox_inches='tight')
+plt.show()
+print("\nPlot saved: problem2_stacking_sequence.png")
