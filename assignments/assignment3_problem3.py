@@ -1,84 +1,104 @@
 """
-Assignment 3 - Problem 3: Laminate Strength Optimization
+Assignment 3 - Problem 3: Unsymmetric Laminate Analysis with Tsai-Hill
 STP 604E - Advanced Design, Analysis and Optimization of Composite Structures
 
-Design a symmetric laminate to maximize strength under biaxial loading
-using Particle Swarm Optimization (PSO) to find optimal ply angles.
+Analyze [30/45/-45/-30]T Kevlar/Epoxy laminate under combined loading:
+Nx = Ny = 1000 N/m, My = Mxy = 50 N
+
+a) Determine mid-plane strains and curvatures
+b) Find global stresses and plot vs vertical location
+c) Check Tsai-Hill failure criterion for each layer
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 from math import cos, sin, radians
-import sys
-sys.path.insert(0, '/home/user/STP604E')
 
-np.random.seed(42)
-
-# Material Properties: IM7/8552 Carbon/Epoxy
-E1 = 165000  # MPa
-E2 = 8400    # MPa
-G12 = 5600   # MPa
+# Material Properties: Kevlar/Epoxy
+E1 = 76e3     # MPa (76 GPa)
+E2 = 5.50e3   # MPa (5.50 GPa)
+G12 = 2.30e3  # MPa (2.30 GPa)
 nu12 = 0.34
 nu21 = nu12 * E2 / E1
-t_ply = 0.125  # mm
+t_ply = 1.25  # mm
 
 # Strength Properties (MPa)
-Xt = 2724    # Longitudinal tensile strength
-Xc = 1690    # Longitudinal compressive strength
-Yt = 111     # Transverse tensile strength
-Yc = 199     # Transverse compressive strength
-S = 130      # In-plane shear strength
+Xt = 1400     # Longitudinal tensile strength
+Xc = 235      # Longitudinal compressive strength
+Yt = 53       # Transverse tensile strength
+Yc = 12       # Transverse compressive strength (Note: very low!)
+S = 34        # In-plane shear strength
 
-# Target loading: biaxial tension with shear
-Nx_target = 500   # N/mm
-Ny_target = 300   # N/mm
-Nxy_target = 100  # N/mm
+# Applied loads
+Nx = 1000 / 1000  # N/m = 1 N/mm (convert to consistent units)
+Ny = 1000 / 1000  # N/mm
+Nxy = 0           # N/mm
+Mx = 0            # N (Note: moments given in N, not N-mm/mm)
+My = 50           # N
+Mxy = 50          # N
 
 print("=" * 70)
-print("ASSIGNMENT 3 - PROBLEM 3: LAMINATE STRENGTH OPTIMIZATION")
+print("ASSIGNMENT 3 - PROBLEM 3: UNSYMMETRIC LAMINATE ANALYSIS")
 print("=" * 70)
-print("\nMaterial: IM7/8552 Carbon/Epoxy")
-print(f"E1 = {E1} MPa, E2 = {E2} MPa, G12 = {G12} MPa")
-print(f"nu12 = {nu12}, t_ply = {t_ply} mm")
+print("\nMaterial: Kevlar/Epoxy")
+print(f"E1 = {E1/1000:.0f} GPa, E2 = {E2/1000:.2f} GPa, G12 = {G12/1000:.2f} GPa")
+print(f"ν12 = {nu12}, t = {t_ply} mm")
 print("\nStrength Properties:")
 print(f"Xt = {Xt} MPa, Xc = {Xc} MPa")
 print(f"Yt = {Yt} MPa, Yc = {Yc} MPa")
 print(f"S = {S} MPa")
-print(f"\nTarget Loading:")
-print(f"Nx = {Nx_target} N/mm, Ny = {Ny_target} N/mm, Nxy = {Nxy_target} N/mm")
+
+# Laminate stacking sequence: [30/45/-45/-30]T (non-symmetric!)
+angles = [30, 45, -45, -30]
+n_plies = len(angles)
+h_total = n_plies * t_ply
+
+print(f"\nLaminate: [30/45/-45/-30]T (Total laminate, not symmetric)")
+print(f"Number of plies: {n_plies}")
+print(f"Total thickness: {h_total} mm")
+print(f"\nApplied Loads:")
+print(f"Nx = {Nx*1000:.0f} N/m = {Nx:.3f} N/mm")
+print(f"Ny = {Ny*1000:.0f} N/m = {Ny:.3f} N/mm")
+print(f"Nxy = {Nxy} N/mm")
+print(f"Mx = {Mx} N")
+print(f"My = {My} N")
+print(f"Mxy = {Mxy} N")
 
 
 def Q_matrix():
     """Calculate reduced stiffness matrix Q"""
-    nu21_calc = nu12 * E2 / E1
     Q = np.zeros((3, 3))
-    Q[0, 0] = E1 / (1 - nu12 * nu21_calc)
-    Q[1, 1] = E2 / (1 - nu12 * nu21_calc)
-    Q[0, 1] = Q[1, 0] = nu12 * E2 / (1 - nu12 * nu21_calc)
+    denom = 1 - nu12 * nu21
+    Q[0, 0] = E1 / denom
+    Q[1, 1] = E2 / denom
+    Q[0, 1] = Q[1, 0] = nu12 * E2 / denom
     Q[2, 2] = G12
     return Q
 
 
 def Q_bar(Q, theta_deg):
-    """Calculate transformed stiffness matrix"""
+    """Calculate transformed stiffness matrix Q-bar"""
     th = radians(theta_deg)
     m, n = cos(th), sin(th)
+
     Q11, Q22, Q12, Q66 = Q[0, 0], Q[1, 1], Q[0, 1], Q[2, 2]
 
     Qbar = np.zeros((3, 3))
-    Qbar[0, 0] = Q11*m**4 + 2*(Q12+2*Q66)*m**2*n**2 + Q22*n**4
-    Qbar[0, 1] = Qbar[1, 0] = (Q11+Q22-4*Q66)*m**2*n**2 + Q12*(m**4 + n**4)
-    Qbar[1, 1] = Q11*n**4 + 2*(Q12+2*Q66)*m**2*n**2 + Q22*m**4
+    Qbar[0, 0] = Q11*m**4 + 2*(Q12 + 2*Q66)*m**2*n**2 + Q22*n**4
+    Qbar[0, 1] = Qbar[1, 0] = (Q11 + Q22 - 4*Q66)*m**2*n**2 + Q12*(m**4 + n**4)
+    Qbar[1, 1] = Q11*n**4 + 2*(Q12 + 2*Q66)*m**2*n**2 + Q22*m**4
     Qbar[0, 2] = Qbar[2, 0] = (Q11 - Q12 - 2*Q66)*m**3*n - (Q22 - Q12 - 2*Q66)*m*n**3
     Qbar[1, 2] = Qbar[2, 1] = (Q11 - Q12 - 2*Q66)*m*n**3 - (Q22 - Q12 - 2*Q66)*m**3*n
     Qbar[2, 2] = (Q11 + Q22 - 2*Q12 - 2*Q66)*m**2*n**2 + Q66*(m**4 + n**4 - 2*m**2*n**2)
+
     return Qbar
 
 
-def transformation_matrix(theta_deg):
-    """Stress transformation matrix"""
+def stress_transformation(theta_deg):
+    """Stress transformation matrix from global to local coordinates"""
     th = radians(theta_deg)
     m, n = cos(th), sin(th)
+
     T = np.array([
         [m**2, n**2, 2*m*n],
         [n**2, m**2, -2*m*n],
@@ -87,304 +107,286 @@ def transformation_matrix(theta_deg):
     return T
 
 
-def tsai_wu_fi(sigma1, sigma2, tau12):
-    """Calculate Tsai-Wu failure index"""
-    F1 = 1/Xt - 1/Xc
-    F2 = 1/Yt - 1/Yc
-    F11 = 1/(Xt * Xc)
-    F22 = 1/(Yt * Yc)
-    F66 = 1/S**2
-    F12 = -0.5 * np.sqrt(F11 * F22)
-    return F1*sigma1 + F2*sigma2 + F11*sigma1**2 + F22*sigma2**2 + F66*tau12**2 + 2*F12*sigma1*sigma2
+# Calculate Q matrix
+Q = Q_matrix()
 
+print("\n" + "-" * 70)
+print("Q-Matrix (Reduced Stiffness) [MPa]:")
+print(np.array2string(Q, precision=1, suppress_small=True))
 
-def evaluate_laminate(angles, loads):
-    """
-    Evaluate laminate strength under given loads.
-    Returns maximum Tsai-Wu failure index across all plies.
-    """
-    Q = Q_matrix()
+# Calculate ABD matrices
+# z coordinates: bottom of laminate to top
+z = []
+z_current = -h_total / 2
+for i in range(n_plies + 1):
+    z.append(z_current)
+    if i < n_plies:
+        z_current += t_ply
 
-    # Create symmetric laminate: [angles]_s
-    full_angles = list(angles) + list(angles)[::-1]
-    n_plies = len(full_angles)
-    h_total = n_plies * t_ply
-    z = np.linspace(-h_total/2, h_total/2, n_plies + 1)
+z = np.array(z)
 
-    # Calculate A matrix
-    A = np.zeros((3, 3))
-    Qbar_list = []
-    for i, theta in enumerate(full_angles):
-        Qbar = Q_bar(Q, theta)
-        Qbar_list.append(Qbar)
-        dz = z[i+1] - z[i]
-        A += Qbar * dz
+print(f"\nPly z-coordinates (mm): {z}")
 
-    # Mid-plane strains
-    try:
-        A_inv = np.linalg.inv(A)
-    except:
-        return 1e10  # Singular matrix
+A = np.zeros((3, 3))
+B = np.zeros((3, 3))
+D = np.zeros((3, 3))
 
-    N = np.array(loads)
-    epsilon_0 = A_inv @ N
+Qbar_list = []
 
-    # Calculate max failure index
-    max_fi = 0
-    for i, theta in enumerate(full_angles):
-        sigma_global = Qbar_list[i] @ epsilon_0
-        T = transformation_matrix(theta)
-        sigma_local = T @ sigma_global
-        fi = tsai_wu_fi(sigma_local[0], sigma_local[1], sigma_local[2])
-        max_fi = max(max_fi, fi)
+for i, theta in enumerate(angles):
+    Qbar = Q_bar(Q, theta)
+    Qbar_list.append(Qbar)
 
-    return max_fi
+    z_bot = z[i]
+    z_top = z[i + 1]
 
+    A += Qbar * (z_top - z_bot)
+    B += 0.5 * Qbar * (z_top**2 - z_bot**2)
+    D += (1/3) * Qbar * (z_top**3 - z_bot**3)
 
-def pso_optimize(n_plies_half, n_particles=30, n_iterations=100, loads=None):
-    """
-    Particle Swarm Optimization to minimize failure index.
-    Optimizes ply angles for a symmetric laminate.
-    """
-    if loads is None:
-        loads = [Nx_target, Ny_target, Nxy_target]
+print("\n" + "-" * 70)
+print("A-Matrix (Extensional Stiffness) [N/mm]:")
+print(np.array2string(A, precision=1, suppress_small=True))
 
-    # Initialize particles (angles between -90 and 90)
-    positions = np.random.uniform(-90, 90, (n_particles, n_plies_half))
-    velocities = np.random.uniform(-10, 10, (n_particles, n_plies_half))
+print("\nB-Matrix (Coupling Stiffness) [N]:")
+print(np.array2string(B, precision=2, suppress_small=True))
+print("Note: B ≠ 0 because laminate is unsymmetric!")
 
-    # PSO parameters
-    w = 0.7      # Inertia weight
-    c1 = 1.5     # Cognitive parameter
-    c2 = 1.5     # Social parameter
+print("\nD-Matrix (Bending Stiffness) [N-mm]:")
+print(np.array2string(D, precision=1, suppress_small=True))
 
-    # Initialize best positions
-    personal_best_pos = positions.copy()
-    personal_best_val = np.array([evaluate_laminate(p, loads) for p in positions])
+# Assemble ABD matrix
+ABD = np.block([[A, B], [B, D]])
 
-    global_best_idx = np.argmin(personal_best_val)
-    global_best_pos = personal_best_pos[global_best_idx].copy()
-    global_best_val = personal_best_val[global_best_idx]
+print("\n" + "-" * 70)
+print("ABD Matrix:")
+print(np.array2string(ABD, precision=2, suppress_small=True))
 
-    history = [global_best_val]
+# Load vector [N, M]
+NM = np.array([Nx, Ny, Nxy, Mx, My, Mxy])
 
-    for iteration in range(n_iterations):
-        for i in range(n_particles):
-            # Update velocity
-            r1, r2 = np.random.random(n_plies_half), np.random.random(n_plies_half)
-            velocities[i] = (w * velocities[i] +
-                           c1 * r1 * (personal_best_pos[i] - positions[i]) +
-                           c2 * r2 * (global_best_pos - positions[i]))
+print("\n" + "-" * 70)
+print("Load Vector [Nx, Ny, Nxy, Mx, My, Mxy]:")
+print(NM)
 
-            # Clamp velocity
-            velocities[i] = np.clip(velocities[i], -30, 30)
+# Solve for mid-plane strains and curvatures
+ABD_inv = np.linalg.inv(ABD)
+eps_kappa = ABD_inv @ NM
 
-            # Update position
-            positions[i] += velocities[i]
-            positions[i] = np.clip(positions[i], -90, 90)
+eps0 = eps_kappa[:3]  # Mid-plane strains [eps_x0, eps_y0, gamma_xy0]
+kappa = eps_kappa[3:]  # Curvatures [kappa_x, kappa_y, kappa_xy]
 
-            # Evaluate
-            fi = evaluate_laminate(positions[i], loads)
-
-            # Update personal best
-            if fi < personal_best_val[i]:
-                personal_best_val[i] = fi
-                personal_best_pos[i] = positions[i].copy()
-
-                # Update global best
-                if fi < global_best_val:
-                    global_best_val = fi
-                    global_best_pos = positions[i].copy()
-
-        history.append(global_best_val)
-
-        # Adaptive inertia weight
-        w = 0.9 - 0.5 * (iteration / n_iterations)
-
-    return global_best_pos, global_best_val, history
-
-
-# Run optimization for different laminate configurations
 print("\n" + "=" * 70)
-print("OPTIMIZATION RESULTS")
+print("PART (a): MID-PLANE STRAINS AND CURVATURES")
 print("=" * 70)
 
-configs = [
-    (2, "4-ply symmetric [θ₁/θ₂]s"),
-    (4, "8-ply symmetric [θ₁/θ₂/θ₃/θ₄]s"),
-    (6, "12-ply symmetric [θ₁/θ₂/θ₃/θ₄/θ₅/θ₆]s"),
-]
+print("\nMid-plane strains:")
+print(f"  ε_x⁰ = {eps0[0]:.6e}")
+print(f"  ε_y⁰ = {eps0[1]:.6e}")
+print(f"  γ_xy⁰ = {eps0[2]:.6e}")
 
-results = {}
-loads = [Nx_target, Ny_target, Nxy_target]
+print("\nCurvatures (1/mm):")
+print(f"  κ_x = {kappa[0]:.6e}")
+print(f"  κ_y = {kappa[1]:.6e}")
+print(f"  κ_xy = {kappa[2]:.6e}")
 
-for n_plies_half, description in configs:
-    print(f"\n{description}:")
-    print("-" * 50)
-
-    best_angles, best_fi, history = pso_optimize(n_plies_half, n_particles=40, n_iterations=150, loads=loads)
-
-    # Round angles to nearest 5 degrees (practical manufacturing)
-    rounded_angles = np.round(best_angles / 5) * 5
-
-    # Re-evaluate with rounded angles
-    fi_rounded = evaluate_laminate(rounded_angles, loads)
-
-    safety_factor = 1 / np.sqrt(best_fi) if best_fi > 0 else float('inf')
-    sf_rounded = 1 / np.sqrt(fi_rounded) if fi_rounded > 0 else float('inf')
-
-    results[description] = {
-        'angles': best_angles,
-        'rounded_angles': rounded_angles,
-        'fi': best_fi,
-        'fi_rounded': fi_rounded,
-        'sf': safety_factor,
-        'sf_rounded': sf_rounded,
-        'history': history
-    }
-
-    print(f"  Optimal angles: [{', '.join([f'{a:.1f}°' for a in best_angles])}]s")
-    print(f"  Rounded angles: [{', '.join([f'{int(a)}°' for a in rounded_angles])}]s")
-    print(f"  Tsai-Wu FI (optimal): {best_fi:.6f}")
-    print(f"  Tsai-Wu FI (rounded): {fi_rounded:.6f}")
-    print(f"  Safety Factor (optimal): {safety_factor:.2f}")
-    print(f"  Safety Factor (rounded): {sf_rounded:.2f}")
-
-# Compare with standard laminates
+# Calculate strains and stresses at top and bottom of each ply
 print("\n" + "=" * 70)
-print("COMPARISON WITH STANDARD LAMINATES")
+print("PART (b): GLOBAL STRESSES VS VERTICAL LOCATION")
 print("=" * 70)
 
-standard_laminates = {
-    "Cross-ply [0/90]s": [0, 90],
-    "Angle-ply [±45]s": [45, -45],
-    "Quasi-isotropic [0/±45/90]s": [0, 45, -45, 90],
-    "Balanced [0/±60]s": [0, 60, -60],
-}
+ply_data = []
 
-print(f"\n{'Laminate':<35} {'Tsai-Wu FI':>12} {'Safety Factor':>14}")
-print("-" * 65)
+print("\n{:>4} {:>8} {:>10} {:>14} {:>14} {:>14}".format(
+    "Ply", "Angle", "z (mm)", "σ_x (MPa)", "σ_y (MPa)", "τ_xy (MPa)"))
+print("-" * 70)
 
-for name, angles in standard_laminates.items():
-    fi = evaluate_laminate(angles, loads)
-    sf = 1 / np.sqrt(fi) if fi > 0 else float('inf')
-    print(f"{name:<35} {fi:>12.6f} {sf:>14.2f}")
+for i, theta in enumerate(angles):
+    z_bot = z[i]
+    z_top = z[i + 1]
+    z_mid = (z_bot + z_top) / 2
 
-# Add optimized results
-for desc, res in results.items():
-    short_name = f"Optimized {desc.split()[0]}"
-    print(f"{short_name:<35} {res['fi']:>12.6f} {res['sf']:>14.2f}")
+    # Strains at bottom, mid, and top of ply
+    for z_loc, loc_name in [(z_bot, "bot"), (z_mid, "mid"), (z_top, "top")]:
+        # Global strains: ε = ε⁰ + z*κ
+        eps_global = eps0 + z_loc * kappa
+
+        # Global stresses: σ = Q̄ * ε
+        sigma_global = Qbar_list[i] @ eps_global
+
+        ply_data.append({
+            'ply': i + 1,
+            'angle': theta,
+            'z': z_loc,
+            'location': loc_name,
+            'eps_global': eps_global,
+            'sigma_global': sigma_global
+        })
+
+        if loc_name in ["bot", "top"]:
+            print(f"{i+1:>4} {theta:>8}° {z_loc:>10.4f} {sigma_global[0]:>14.4f} {sigma_global[1]:>14.4f} {sigma_global[2]:>14.4f}")
+
+# Calculate local stresses and Tsai-Hill failure
+print("\n" + "=" * 70)
+print("PART (c): TSAI-HILL FAILURE ANALYSIS")
+print("=" * 70)
+
+print("\nLocal (Material) Stresses and Tsai-Hill Index:")
+print("{:>4} {:>8} {:>10} {:>12} {:>12} {:>12} {:>12} {:>8}".format(
+    "Ply", "Angle", "z (mm)", "σ_1 (MPa)", "σ_2 (MPa)", "τ_12 (MPa)", "Tsai-Hill", "Status"))
+print("-" * 90)
+
+failure_results = []
+
+for data in ply_data:
+    if data['location'] not in ['bot', 'top']:
+        continue
+
+    # Transform global stress to local (material) coordinates
+    T = stress_transformation(data['angle'])
+    sigma_local = T @ data['sigma_global']
+
+    sigma1 = sigma_local[0]
+    sigma2 = sigma_local[1]
+    tau12 = sigma_local[2]
+
+    # Tsai-Hill criterion
+    # Use appropriate strength based on sign of stress
+    X = Xt if sigma1 >= 0 else Xc
+    Y = Yt if sigma2 >= 0 else Yc
+
+    # Tsai-Hill: (σ1/X)² - (σ1*σ2/X²) + (σ2/Y)² + (τ12/S)² ≤ 1
+    tsai_hill = (sigma1/X)**2 - (sigma1*sigma2)/X**2 + (sigma2/Y)**2 + (tau12/S)**2
+
+    status = "FAIL" if tsai_hill >= 1 else "SAFE"
+
+    failure_results.append({
+        'ply': data['ply'],
+        'angle': data['angle'],
+        'z': data['z'],
+        'location': data['location'],
+        'sigma1': sigma1,
+        'sigma2': sigma2,
+        'tau12': tau12,
+        'tsai_hill': tsai_hill,
+        'status': status
+    })
+
+    print(f"{data['ply']:>4} {data['angle']:>8}° {data['z']:>10.4f} {sigma1:>12.4f} {sigma2:>12.4f} {tau12:>12.4f} {tsai_hill:>12.6f} {status:>8}")
+
+# Summary
+print("\n" + "-" * 70)
+print("FAILURE SUMMARY:")
+print("-" * 70)
+
+failed_plies = [r for r in failure_results if r['status'] == "FAIL"]
+if failed_plies:
+    print(f"\n⚠ FAILURE DETECTED in {len(failed_plies)} location(s):")
+    for f in failed_plies:
+        print(f"  - Ply {f['ply']} ({f['angle']}°) at z = {f['z']:.3f} mm ({f['location']}), TH = {f['tsai_hill']:.4f}")
+else:
+    print("\n✓ NO FAILURE - All plies are safe under the applied loading")
+
+max_th = max(r['tsai_hill'] for r in failure_results)
+critical = [r for r in failure_results if r['tsai_hill'] == max_th][0]
+print(f"\nCritical location: Ply {critical['ply']} ({critical['angle']}°) at z = {critical['z']:.3f} mm")
+print(f"Maximum Tsai-Hill index: {max_th:.6f}")
+
+if max_th < 1:
+    safety_factor = 1 / np.sqrt(max_th)
+    print(f"Safety Factor (load multiplier to failure): {safety_factor:.2f}")
 
 # Create visualization
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-# Plot 1: Convergence history
+# Plot 1: Global stresses vs z
 ax1 = axes[0, 0]
-colors = ['blue', 'red', 'green']
-for (desc, res), color in zip(results.items(), colors):
-    label = desc.split()[0]
-    ax1.plot(res['history'], label=label, linewidth=2, color=color)
-ax1.set_xlabel('Iteration', fontsize=12)
-ax1.set_ylabel('Best Tsai-Wu Failure Index', fontsize=12)
-ax1.set_title('PSO Convergence History', fontsize=14)
+z_plot = [d['z'] for d in ply_data]
+sigma_x = [d['sigma_global'][0] for d in ply_data]
+sigma_y = [d['sigma_global'][1] for d in ply_data]
+tau_xy = [d['sigma_global'][2] for d in ply_data]
+
+ax1.plot(sigma_x, z_plot, 'b-o', label='σ_x', linewidth=2, markersize=4)
+ax1.plot(sigma_y, z_plot, 'r-s', label='σ_y', linewidth=2, markersize=4)
+ax1.plot(tau_xy, z_plot, 'g-^', label='τ_xy', linewidth=2, markersize=4)
+
+# Add ply boundaries
+for zi in z:
+    ax1.axhline(y=zi, color='gray', linewidth=0.5, linestyle='--')
+
+ax1.axvline(x=0, color='k', linewidth=0.5)
+ax1.set_xlabel('Stress (MPa)', fontsize=12)
+ax1.set_ylabel('z (mm)', fontsize=12)
+ax1.set_title('Global Stresses vs. Vertical Location', fontsize=14)
 ax1.legend()
 ax1.grid(True, alpha=0.3)
-ax1.set_yscale('log')
 
-# Plot 2: Safety factor comparison
+# Add ply angle labels
+for i, theta in enumerate(angles):
+    z_mid = (z[i] + z[i+1]) / 2
+    ax1.text(ax1.get_xlim()[1] * 0.95, z_mid, f'{theta}°', ha='right', va='center', fontsize=10)
+
+# Plot 2: Local stresses vs z (at interfaces only)
 ax2 = axes[0, 1]
-all_laminates = {}
-for name, angles in standard_laminates.items():
-    fi = evaluate_laminate(angles, loads)
-    sf = 1 / np.sqrt(fi) if fi > 0 else float('inf')
-    all_laminates[name.replace('[', '\n[')] = sf
+z_local = [r['z'] for r in failure_results]
+sigma1_plot = [r['sigma1'] for r in failure_results]
+sigma2_plot = [r['sigma2'] for r in failure_results]
+tau12_plot = [r['tau12'] for r in failure_results]
 
-for desc, res in results.items():
-    short = f"Optimized\n{desc.split()[0]}"
-    all_laminates[short] = res['sf']
+ax2.plot(sigma1_plot, z_local, 'b-o', label='σ_1', linewidth=2, markersize=6)
+ax2.plot(sigma2_plot, z_local, 'r-s', label='σ_2', linewidth=2, markersize=6)
+ax2.plot(tau12_plot, z_local, 'g-^', label='τ_12', linewidth=2, markersize=6)
 
-names = list(all_laminates.keys())
-sfs = list(all_laminates.values())
-bar_colors = ['gray'] * len(standard_laminates) + colors[:len(results)]
-bars = ax2.bar(range(len(names)), sfs, color=bar_colors, alpha=0.8, edgecolor='black')
-ax2.set_xticks(range(len(names)))
-ax2.set_xticklabels(names, fontsize=9)
-ax2.set_ylabel('Safety Factor', fontsize=12)
-ax2.set_title('Safety Factor Comparison', fontsize=14)
-ax2.grid(True, alpha=0.3, axis='y')
-ax2.axhline(y=1, color='r', linestyle='--', linewidth=2, label='Failure threshold')
+for zi in z:
+    ax2.axhline(y=zi, color='gray', linewidth=0.5, linestyle='--')
 
-# Plot 3: Optimized laminate visualization (8-ply)
+ax2.axvline(x=0, color='k', linewidth=0.5)
+ax2.set_xlabel('Stress (MPa)', fontsize=12)
+ax2.set_ylabel('z (mm)', fontsize=12)
+ax2.set_title('Local (Material) Stresses vs. z', fontsize=14)
+ax2.legend()
+ax2.grid(True, alpha=0.3)
+
+# Plot 3: Tsai-Hill index vs z
 ax3 = axes[1, 0]
-best_8ply = results['8-ply symmetric [θ₁/θ₂/θ₃/θ₄]s']
-angles_8 = list(best_8ply['rounded_angles']) + list(best_8ply['rounded_angles'])[::-1]
-n_plies_vis = len(angles_8)
-h_total_vis = n_plies_vis * t_ply
+th_values = [r['tsai_hill'] for r in failure_results]
 
-cmap = plt.cm.coolwarm
-for i, theta in enumerate(angles_8):
-    color = cmap((theta + 90) / 180)
-    rect = plt.Rectangle((0, i * t_ply - h_total_vis/2), 4, t_ply,
-                         facecolor=color, edgecolor='black', linewidth=0.5)
-    ax3.add_patch(rect)
-    ax3.text(4.2, (i + 0.5) * t_ply - h_total_vis/2, f'{int(theta)}°', va='center', fontsize=10)
+ax3.barh([f"Ply {r['ply']} ({r['location']})" for r in failure_results], th_values,
+         color=['red' if v >= 1 else 'green' for v in th_values], alpha=0.7, edgecolor='black')
+ax3.axvline(x=1, color='red', linewidth=2, linestyle='--', label='Failure threshold')
+ax3.set_xlabel('Tsai-Hill Index', fontsize=12)
+ax3.set_ylabel('Ply and Location', fontsize=12)
+ax3.set_title('Tsai-Hill Failure Index by Ply', fontsize=14)
+ax3.legend()
+ax3.grid(True, alpha=0.3, axis='x')
 
-ax3.set_xlim(-0.5, 5)
-ax3.set_ylim(-h_total_vis/2 - 0.1, h_total_vis/2 + 0.1)
-ax3.set_aspect('equal')
-ax3.set_title(f'Optimized 8-ply Laminate\nSF = {best_8ply["sf_rounded"]:.2f}', fontsize=14)
-ax3.set_xlabel('Width (arbitrary)', fontsize=12)
-ax3.set_ylabel('z (mm)', fontsize=12)
-ax3.axhline(y=0, color='k', linewidth=1, linestyle='--')
-
-# Add colorbar
-sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(-90, 90))
-sm.set_array([])
-cbar = plt.colorbar(sm, ax=ax3, orientation='vertical', label='Ply Angle (°)')
-
-# Plot 4: Failure index surface for 2-angle laminate
+# Plot 4: Laminate stacking visualization
 ax4 = axes[1, 1]
-theta1_range = np.linspace(-90, 90, 50)
-theta2_range = np.linspace(-90, 90, 50)
-FI_surface = np.zeros((len(theta1_range), len(theta2_range)))
+colors_map = {30: '#1f77b4', 45: '#ff7f0e', -45: '#2ca02c', -30: '#d62728'}
 
-for i, t1 in enumerate(theta1_range):
-    for j, t2 in enumerate(theta2_range):
-        FI_surface[i, j] = evaluate_laminate([t1, t2], loads)
+for i, theta in enumerate(angles):
+    rect = plt.Rectangle((0, z[i]), 4, t_ply,
+                         facecolor=colors_map[theta], edgecolor='black', linewidth=1)
+    ax4.add_patch(rect)
+    ax4.text(4.3, (z[i] + z[i+1])/2, f'{theta}°', va='center', fontsize=11, fontweight='bold')
+    ax4.text(-0.5, (z[i] + z[i+1])/2, f'Ply {i+1}', va='center', ha='right', fontsize=10)
 
-# Clip for visualization
-FI_surface = np.clip(FI_surface, 0, 2)
+ax4.set_xlim(-1, 5.5)
+ax4.set_ylim(z[0] - 0.3, z[-1] + 0.3)
+ax4.set_aspect('equal')
+ax4.set_title('[30/45/-45/-30]T Laminate (Unsymmetric)', fontsize=14)
+ax4.set_xlabel('Width (arbitrary)', fontsize=12)
+ax4.set_ylabel('z (mm)', fontsize=12)
+ax4.axhline(y=0, color='k', linewidth=1, linestyle='--', label='Mid-plane')
 
-T1, T2 = np.meshgrid(theta1_range, theta2_range)
-contour = ax4.contourf(T1, T2, FI_surface.T, levels=20, cmap='RdYlGn_r')
-ax4.contour(T1, T2, FI_surface.T, levels=[1.0], colors='black', linewidths=2)
-cbar2 = plt.colorbar(contour, ax=ax4, label='Tsai-Wu FI')
-
-# Mark optimum
-opt_4ply = results['4-ply symmetric [θ₁/θ₂]s']
-ax4.scatter(opt_4ply['angles'][0], opt_4ply['angles'][1], color='blue', s=200, marker='*',
-           edgecolor='white', linewidth=2, zorder=5, label='PSO Optimum')
-ax4.set_xlabel('θ₁ (degrees)', fontsize=12)
-ax4.set_ylabel('θ₂ (degrees)', fontsize=12)
-ax4.set_title('Failure Index Surface for [θ₁/θ₂]s\n(Black line = FI=1)', fontsize=14)
-ax4.legend(loc='upper right')
+from matplotlib.patches import Patch
+legend_elements = [Patch(facecolor=colors_map[a], edgecolor='black', label=f'{a}°') for a in [30, 45, -45, -30]]
+ax4.legend(handles=legend_elements, loc='upper right')
 
 plt.tight_layout()
 plt.savefig('/home/user/STP604E/assignment3_problem3_results.png', dpi=300, bbox_inches='tight')
 print("\n" + "-" * 70)
 print("Figure saved: assignment3_problem3_results.png")
-print("=" * 70)
-
-# Final Summary
-print("\n" + "=" * 70)
-print("SUMMARY: RECOMMENDED LAMINATE DESIGN")
-print("=" * 70)
-best_config = max(results.items(), key=lambda x: x[1]['sf_rounded'])
-print(f"\nBest performing laminate: {best_config[0]}")
-print(f"Recommended stacking sequence: [{', '.join([f'{int(a)}°' for a in best_config[1]['rounded_angles']])}]s")
-print(f"Safety Factor: {best_config[1]['sf_rounded']:.2f}")
-print(f"\nThis design provides {best_config[1]['sf_rounded']:.1f}x safety margin under the specified loading:")
-print(f"  Nx = {Nx_target} N/mm, Ny = {Ny_target} N/mm, Nxy = {Nxy_target} N/mm")
 print("=" * 70)
 
 plt.close()

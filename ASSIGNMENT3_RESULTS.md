@@ -1,5 +1,5 @@
 # STP 604E - Assignment 3 Results
-## Failure Analysis and Strength Optimization of Composite Laminates
+## Failure Analysis and Laminate Design
 
 **Course**: STP 604E - Advanced Design, Analysis and Optimization of Composite Structures for Aerospace
 **Institution**: Istanbul Technical University - Defence Technologies
@@ -9,361 +9,398 @@
 ---
 
 ## Table of Contents
-1. [Problem 1: Failure Criteria Comparison](#problem-1)
-2. [Problem 2: First Ply Failure Analysis](#problem-2)
-3. [Problem 3: Laminate Strength Optimization](#problem-3)
-4. [Summary and Conclusions](#summary)
+1. [Problem 1: Strength Envelope](#problem-1)
+2. [Problem 2: Stacking Sequence Identification](#problem-2)
+3. [Problem 3: Unsymmetric Laminate Analysis](#problem-3)
+4. [Problem 4: 16-ply Laminate Design](#problem-4)
 
 ---
 
-## Problem 1: Failure Criteria Comparison {#problem-1}
+## Problem 1: Strength Envelope using Maximum Strain Criterion {#problem-1}
 
 ### Problem Statement
-Compare different failure criteria for a unidirectional lamina under combined loading conditions. Analyze and visualize failure envelopes using:
-- Maximum Stress Criterion
-- Maximum Strain Criterion
-- Tsai-Hill Criterion
-- Tsai-Wu Criterion
+A Graphite/Epoxy laminate with [0/±45₂/90]s stacking sequence is loaded only by biaxial loads. Draw the strength envelope for the laminate in the σ̄x - σ̄y plane using the maximum strain criterion. Determine the maximum value of:
+- (a) Pure tensile load (Nx)
+- (b) Pure compressive load (Ny)
 
 ### Material Properties
 
-**Material**: T300/5208 Carbon/Epoxy
+**Material**: Graphite/Epoxy
 
 | Property | Value | Unit |
 |----------|-------|------|
-| E₁ | 181,000 | MPa |
-| E₂ | 10,300 | MPa |
-| G₁₂ | 7,170 | MPa |
-| ν₁₂ | 0.28 | - |
-
-**Strength Properties**:
-
-| Property | Symbol | Value (MPa) |
-|----------|--------|-------------|
-| Longitudinal Tensile Strength | Xₜ | 1,500 |
-| Longitudinal Compressive Strength | Xc | 1,500 |
-| Transverse Tensile Strength | Yₜ | 40 |
-| Transverse Compressive Strength | Yc | 246 |
-| In-plane Shear Strength | S | 68 |
-
-### Failure Criteria Formulations
-
-#### 1. Maximum Stress Criterion
-The lamina fails when any stress component exceeds its allowable value:
-
-$$\frac{\sigma_1}{X} \leq 1, \quad \frac{\sigma_2}{Y} \leq 1, \quad \frac{|\tau_{12}|}{S} \leq 1$$
-
-#### 2. Maximum Strain Criterion
-Similar to maximum stress but uses strain limits:
-
-$$\frac{\varepsilon_1}{\varepsilon_1^{ult}} \leq 1, \quad \frac{\varepsilon_2}{\varepsilon_2^{ult}} \leq 1, \quad \frac{|\gamma_{12}|}{\gamma_{12}^{ult}} \leq 1$$
-
-#### 3. Tsai-Hill Criterion
-An interactive quadratic criterion:
-
-$$\left(\frac{\sigma_1}{X}\right)^2 - \frac{\sigma_1 \sigma_2}{X^2} + \left(\frac{\sigma_2}{Y}\right)^2 + \left(\frac{\tau_{12}}{S}\right)^2 \leq 1$$
-
-#### 4. Tsai-Wu Criterion
-The most general polynomial criterion:
-
-$$F_1\sigma_1 + F_2\sigma_2 + F_{11}\sigma_1^2 + F_{22}\sigma_2^2 + F_{66}\tau_{12}^2 + 2F_{12}\sigma_1\sigma_2 \leq 1$$
-
-Where:
-- $F_1 = \frac{1}{X_t} - \frac{1}{X_c}$
-- $F_2 = \frac{1}{Y_t} - \frac{1}{Y_c}$
-- $F_{11} = \frac{1}{X_t X_c}$
-- $F_{22} = \frac{1}{Y_t Y_c}$
-- $F_{66} = \frac{1}{S^2}$
-- $F_{12} = -\frac{1}{2}\sqrt{F_{11}F_{22}}$
-
-### Test Case Results
-
-| Loading Case | σ₁ (MPa) | σ₂ (MPa) | τ₁₂ (MPa) | Max Stress | Max Strain | Tsai-Hill | Tsai-Wu |
-|--------------|----------|----------|-----------|------------|------------|-----------|---------|
-| Combined moderate | 500 | 20 | 30 | 0.500 | 0.441 | 0.743 | 0.698 |
-| Pure longitudinal | 1000 | 0 | 0 | 0.667 | 0.667 | 0.667 | 0.444 |
-| Pure transverse | 0 | 30 | 0 | 0.750 | 0.750 | 0.750 | 0.720 |
-| Pure shear | 0 | 0 | 50 | 0.735 | 0.735 | 0.735 | 0.541 |
-| Combined compression | -800 | -100 | 40 | 0.588 | 0.588 | 0.872 | -0.984 |
-
-**Note**: Failure Index (FI) ≥ 1 indicates failure
-
-### Safety Factor Analysis
-
-| Loading Case | Max Stress | Max Strain | Tsai-Hill | Tsai-Wu |
-|--------------|------------|------------|-----------|---------|
-| Combined moderate | 2.00 | 2.27 | 1.35 | 1.43 |
-| Pure longitudinal | 1.50 | 1.50 | 1.50 | 2.25 |
-| Pure transverse | 1.33 | 1.33 | 1.33 | 1.39 |
-| Pure shear | 1.36 | 1.36 | 1.36 | 1.85 |
-| Combined compression | 1.70 | 1.70 | 1.15 | ∞ |
-
-### Visualization
-
-![Problem 1 Results](assignment3_problem1_results.png)
-
-**Figure 1**: Failure envelopes for different criteria. Left: σ₁-σ₂ plane (τ₁₂ = 0). Right: σ₂-τ₁₂ plane (σ₁ = 0).
-
-### Key Insights
-
-1. **Tsai-Wu provides the most conservative predictions** for most loading cases due to its accounting for tension-compression asymmetry
-2. **Maximum Stress and Maximum Strain** criteria are non-interactive and may be unconservative under combined loading
-3. **Tsai-Hill** criterion cannot distinguish between tension and compression strengths
-4. The **negative Tsai-Wu index** under combined compression indicates the lamina is safely within the failure envelope
-
----
-
-## Problem 2: First Ply Failure (FPF) Analysis {#problem-2}
-
-### Problem Statement
-Determine the First Ply Failure load for a **[0/45/-45/90]s** quasi-isotropic laminate under uniaxial tensile loading (Nₓ). Compare FPF predictions using different failure criteria.
-
-### Material Properties
-
-**Material**: AS4/3501-6 Carbon/Epoxy
-
-| Property | Value | Unit |
-|----------|-------|------|
-| E₁ | 142,000 | MPa |
-| E₂ | 10,300 | MPa |
-| G₁₂ | 7,200 | MPa |
-| ν₁₂ | 0.27 | - |
-| Ply thickness | 0.125 | mm |
+| E₁ | 138 | GPa |
+| E₂ | 8.69 | GPa |
+| G₁₂ | 7.10 | GPa |
+| ν₁₂ | 0.3 | - |
+| t | 0.125 | mm |
 
 **Strength Properties**:
 
 | Property | Value (MPa) |
 |----------|-------------|
-| Xₜ | 2,280 |
-| Xc | 1,440 |
+| Xₜ | 2280 |
+| Xc | 1725 |
 | Yₜ | 57 |
 | Yc | 228 |
-| S | 71 |
+| S | 76 |
 
 ### Laminate Configuration
 
-- **Stacking Sequence**: [0/45/-45/90]s
-- **Number of Plies**: 8
-- **Total Thickness**: 1.0 mm
+- **Stacking Sequence**: [0/±45₂/90]s = [0/45/45/-45/-45/90/90/-45/-45/45/45/0]
+- **Number of Plies**: 12
+- **Total Thickness**: 1.5 mm
 
-### ABD Stiffness Matrices
+### Ultimate Strains (for Maximum Strain Criterion)
 
-**A-Matrix (Extensional Stiffness) [N/mm]**:
-```
-[[61715.1  17635.5      0.0]
- [17635.5  61715.1      0.0]
- [    0.0      0.0  20239.8]]
-```
+| Strain | Value |
+|--------|-------|
+| ε₁ₜ | 0.01652 |
+| ε₁c | 0.01250 |
+| ε₂ₜ | 0.00656 |
+| ε₂c | 0.02624 |
+| γ₁₂_ult | 0.01070 |
 
-**B-Matrix (Coupling Stiffness) [N]**:
-```
-[[0  0  0]
- [0  0  0]
- [0  0  0]]
-```
+### A-Matrix (Extensional Stiffness) [N/mm]
 
-Note: B = 0 confirms the laminate is symmetric (no bending-extension coupling)
-
-**D-Matrix (Bending Stiffness) [N-mm]**:
 ```
-[[8477.9  1237.8   517.2]
- [1237.8  2271.7   517.2]
- [ 517.2   517.2  1482.9]]
+[[82174.0  32403.4      0.0]
+ [32403.4  82174.0      0.0]
+ [    0.0      0.0  35570.6]]
 ```
 
-### Mid-plane Strains (for Nₓ = 1 N/mm)
+Note: A₁₆ = A₂₆ = 0 confirms balanced laminate (no shear-extension coupling)
 
-| Strain Component | Value |
-|------------------|-------|
-| εₓ⁰ | 1.764 × 10⁻⁵ |
-| εᵧ⁰ | -5.042 × 10⁻⁶ |
-| γₓᵧ⁰ | ≈ 0 |
+### Results
 
-### Ply-by-Ply Stress Analysis
+#### (a) Maximum Pure Tensile Load (Nx)
 
-| Ply | Angle | σ₁ (MPa) | σ₂ (MPa) | τ₁₂ (MPa) | Tsai-Wu FI | Tsai-Hill FI | Max Stress FI |
-|-----|-------|----------|----------|-----------|------------|--------------|---------------|
-| 1 | 0° | 2.505 | -0.003 | 0.000 | -0.0007 | 0.0000 | 0.0011 |
-| 2 | 45° | 0.917 | 0.083 | -0.163 | 0.0009 | 0.0000 | 0.0023 |
-| 3 | -45° | 0.917 | 0.083 | 0.163 | 0.0009 | 0.0000 | 0.0023 |
-| 4 | 90° | -0.670 | 0.169 | 0.000 | **0.0024** | 0.0000 | **0.0030** |
-| 5 | 90° | -0.670 | 0.169 | 0.000 | **0.0024** | 0.0000 | **0.0030** |
-| 6 | -45° | 0.917 | 0.083 | 0.163 | 0.0009 | 0.0000 | 0.0023 |
-| 7 | 45° | 0.917 | 0.083 | -0.163 | 0.0009 | 0.0000 | 0.0023 |
-| 8 | 0° | 2.505 | -0.003 | 0.000 | -0.0007 | 0.0000 | 0.0011 |
+| Parameter | Value |
+|-----------|-------|
+| Maximum σ̄x (tensile) | **303.46 MPa** |
+| Maximum Nx | **455.19 N/mm** |
+| Critical Ply | Ply 6 (90°) |
+| Failure Mode | **Matrix Tension** |
 
-### First Ply Failure Results
+At failure, the 90° ply reaches the transverse tensile strain limit (ε₂ = 0.00656).
 
-| Criterion | Critical Ply | Critical Angle | FPF Load Nₓ (N/mm) |
-|-----------|--------------|----------------|-------------------|
-| **Tsai-Wu** | 4 | 90° | **20.44** |
-| **Tsai-Hill** | 4 | 90° | **332.94** |
-| **Max Stress** | 4 | 90° | **338.07** |
+#### (b) Maximum Pure Compressive Load (Ny)
 
-### Visualization
+| Parameter | Value |
+|-----------|-------|
+| Maximum σ̄y (compressive) | **-355.17 MPa** |
+| Maximum Ny | **-532.76 N/mm** |
+| Critical Ply | Ply 2 (45°) |
+| Failure Mode | **Shear** |
 
-![Problem 2 Results](assignment3_problem2_results.png)
+At failure, the ±45° plies reach the shear strain limit (γ₁₂ = 0.01070).
 
-**Figure 2**: First Ply Failure analysis results. (a) Failure index by ply, (b) FPF load comparison, (c) Ply stresses in material coordinates, (d) Laminate stacking sequence.
+### Strength Envelope
 
-### Key Insights
+![Problem 1 Results](assignment3_problem1_results.png)
 
-1. **The 90° plies are critical** for first ply failure under uniaxial tension Nₓ
-2. **Tsai-Wu predicts the lowest FPF load** (most conservative) at 20.44 N/mm
-3. **Large discrepancy** exists between Tsai-Wu and other criteria due to:
-   - Tsai-Wu accounts for tension-compression asymmetry
-   - The 90° ply experiences transverse tension (σ₂ > 0), where Yₜ << Yc
-4. **Symmetric laminate** (B = 0) ensures no coupling between in-plane and bending responses
+**Figure 1**: (Left) Strength envelope in σ̄x - σ̄y plane using maximum strain criterion. (Right) Laminate stacking sequence visualization.
+
+### Key Observations
+
+1. The laminate is **quasi-isotropic in tension** (same strength in x and y for tension)
+2. **Matrix tension** controls failure under tensile loading due to low Yₜ
+3. **Shear failure** controls under compression due to the ±45° plies
+4. The envelope is symmetric about the origin due to the balanced symmetric layup
 
 ---
 
-## Problem 3: Laminate Strength Optimization {#problem-3}
+## Problem 2: Stacking Sequence Identification from Experiments {#problem-2}
 
 ### Problem Statement
-Design a symmetric laminate to maximize strength (minimize failure index) under biaxial loading using Particle Swarm Optimization (PSO). Find optimal ply angles for different laminate configurations.
+Determine the laminate stacking sequence from experimental tests:
+- Under uniaxial tension: No bending, no shear coupling
+- Under bending: Pure bending (no twist)
+- Elongation at 2500 N: 0.0897 mm
+- Bending slope: 0.0808 mm/N
+- Plate dimensions: 150 mm × 30 mm × 2 mm
+- Possible plies: 0°, ±45°, 90°
 
 ### Material Properties
 
-**Material**: IM7/8552 Carbon/Epoxy
+| Property | Value | Unit |
+|----------|-------|------|
+| E₁ | 181 | GPa |
+| E₂ | 10.3 | GPa |
+| G₁₂ | 7.17 | GPa |
+| ν₁₂ | 0.28 | - |
+| t_ply | 0.25 | mm |
+
+### Constraint Analysis
+
+From the experimental observations:
+
+1. **No bending under tension** → Laminate must be **SYMMETRIC** (B = 0)
+2. **No shear coupling** → Laminate must be **BALANCED** (A₁₆ = A₂₆ = 0)
+3. **Pure bending (no twist)** → D₁₆ = D₂₆ ≈ 0
+
+### Target Values
+
+| Parameter | Experimental Value |
+|-----------|-------------------|
+| Elongation at 2500 N | 0.0897 mm |
+| Bending slope (δ/P) | 0.0808 mm/N |
+
+### Solution Approach
+
+For a symmetric balanced 8-ply laminate [θ₁/θ₂/θ₃/θ₄]s:
+- Elongation: δ = (P × L) / (W × E_eff × h) where E_eff depends on A-matrix
+- Bending slope: δ/P = L³ / (48 × D₁₁ × W)
+
+### Identified Stacking Sequence
+
+**Best Match: [90/45/0/-45]s** (or equivalently [90/-45/0/45]s)
+
+| Parameter | Experimental | Calculated | Error |
+|-----------|--------------|------------|-------|
+| Elongation | 0.0897 mm | 0.0897 mm | 0.0% |
+| Bending slope | 0.0808 mm/N | 0.0807 mm/N | 0.1% |
+
+### Full Stacking Sequence
+
+[90/45/0/-45/-45/0/45/90]
+
+### Verification
+
+![Problem 2 Results](assignment3_problem2_results.png)
+
+**Figure 2**: (Left) Identified laminate stacking sequence. (Right) Comparison of experimental vs. predicted values.
+
+### Effective Properties
+
+- **E_x (effective)** ≈ 55.8 GPa
+- **E_y (effective)** ≈ 55.8 GPa (quasi-isotropic in-plane)
+
+---
+
+## Problem 3: Unsymmetric Laminate Analysis with Tsai-Hill {#problem-3}
+
+### Problem Statement
+Analyze [30/45/-45/-30]T Kevlar/Epoxy laminate under:
+- Nx = Ny = 1000 N/m
+- My = Mxy = 50 N
+
+Determine:
+- (a) Mid-plane strains and curvatures
+- (b) Global stresses vs. vertical location
+- (c) Tsai-Hill failure analysis
+
+### Material Properties
+
+**Material**: Kevlar/Epoxy
 
 | Property | Value | Unit |
 |----------|-------|------|
-| E₁ | 165,000 | MPa |
-| E₂ | 8,400 | MPa |
-| G₁₂ | 5,600 | MPa |
+| E₁ | 76 | GPa |
+| E₂ | 5.50 | GPa |
+| G₁₂ | 2.30 | GPa |
 | ν₁₂ | 0.34 | - |
-| Ply thickness | 0.125 | mm |
+| t | 1.25 | mm |
 
 **Strength Properties**:
 
 | Property | Value (MPa) |
 |----------|-------------|
-| Xₜ | 2,724 |
-| Xc | 1,690 |
-| Yₜ | 111 |
-| Yc | 199 |
-| S | 130 |
+| Xₜ | 1400 |
+| Xc | 235 |
+| Yₜ | 53 |
+| Yc | 12 |
+| S | 34 |
 
-### Target Loading
+Note: Very low transverse compressive strength (Yc = 12 MPa)!
 
-| Load | Value | Unit |
-|------|-------|------|
-| Nₓ | 500 | N/mm |
-| Nᵧ | 300 | N/mm |
-| Nₓᵧ | 100 | N/mm |
+### Laminate Configuration
 
-### PSO Algorithm Parameters
+- **Stacking Sequence**: [30/45/-45/-30]T (Total, not symmetric)
+- **Total Thickness**: 5.0 mm
+- **Note**: This is an **unsymmetric** laminate (B ≠ 0)
 
-| Parameter | Value |
+### Part (a): Mid-plane Strains and Curvatures
+
+**Mid-plane Strains**:
+
+| Component | Value |
 |-----------|-------|
-| Number of particles | 40 |
-| Number of iterations | 150 |
-| Inertia weight (w) | 0.9 → 0.4 (adaptive) |
-| Cognitive parameter (c₁) | 1.5 |
-| Social parameter (c₂) | 1.5 |
+| ε°x | 7.897 × 10⁻⁴ |
+| ε°y | -1.576 × 10⁻⁵ |
+| γ°xy | 3.248 × 10⁻⁴ |
 
-### Optimization Results
+**Curvatures** (1/mm):
 
-#### 4-ply Symmetric Laminate [θ₁/θ₂]s
+| Component | Value |
+|-----------|-------|
+| κx | -1.936 × 10⁻⁴ |
+| κy | 8.153 × 10⁻⁴ |
+| κxy | 1.001 × 10⁻³ |
 
-| Parameter | Optimal | Rounded (±5°) |
-|-----------|---------|---------------|
-| Angles | [-11.8°, 56.2°] | [-10°, 55°] |
-| Tsai-Wu FI | 0.513 | 0.615 |
-| Safety Factor | **1.40** | **1.28** |
+Note: Non-zero curvatures under in-plane loading due to bending-extension coupling (B ≠ 0).
 
-#### 8-ply Symmetric Laminate [θ₁/θ₂/θ₃/θ₄]s
+### Part (b): Global Stresses vs. z
 
-| Parameter | Optimal | Rounded (±5°) |
-|-----------|---------|---------------|
-| Angles | [-21.0°, -20.2°, 49.0°, 49.0°] | [-20°, -20°, 50°, 50°] |
-| Tsai-Wu FI | 0.131 | 0.132 |
-| Safety Factor | **2.76** | **2.75** |
+| Ply | Angle | z (mm) | σx (MPa) | σy (MPa) | τxy (MPa) |
+|-----|-------|--------|----------|----------|-----------|
+| 1 | 30° | -2.500 | -21.94 | -19.52 | -18.48 |
+| 1 | 30° | -1.250 | 10.75 | -2.69 | 2.07 |
+| 2 | 45° | -1.250 | -11.79 | -21.30 | -17.16 |
+| 2 | 45° | 0.000 | 24.26 | 20.55 | 19.75 |
+| 3 | -45° | 0.000 | 12.71 | 9.01 | -7.76 |
+| 3 | -45° | 1.250 | 4.27 | 6.36 | 1.52 |
+| 4 | -30° | 1.250 | 3.97 | 6.07 | 2.26 |
+| 4 | -30° | 2.500 | -20.63 | 3.12 | 17.79 |
 
-#### 12-ply Symmetric Laminate [θ₁/θ₂/θ₃/θ₄/θ₅/θ₆]s
+### Part (c): Tsai-Hill Failure Analysis
 
-| Parameter | Optimal | Rounded (±5°) |
-|-----------|---------|---------------|
-| Angles | [-3.9°, -3.9°, 42.8°, -3.8°, 53.2°, -90.0°] | [-5°, -5°, 45°, -5°, 55°, -90°] |
-| Tsai-Wu FI | 0.073 | 0.080 |
-| Safety Factor | **3.71** | **3.54** |
+| Ply | Angle | z (mm) | σ₁ (MPa) | σ₂ (MPa) | τ₁₂ (MPa) | Tsai-Hill | Status |
+|-----|-------|--------|----------|----------|-----------|-----------|--------|
+| 1 | 30° | -2.500 | -37.34 | -4.12 | -8.19 | 0.198 | SAFE |
+| 1 | 30° | -1.250 | 9.19 | -1.13 | -4.78 | 0.029 | SAFE |
+| 2 | 45° | -1.250 | -33.70 | 0.62 | -4.75 | 0.041 | SAFE |
+| 2 | 45° | 0.000 | 42.16 | 2.66 | -1.85 | 0.006 | SAFE |
+| 3 | -45° | 0.000 | 18.62 | 3.10 | 1.85 | 0.007 | SAFE |
+| 3 | -45° | 1.250 | 3.79 | 6.84 | -1.05 | 0.018 | SAFE |
+| 4 | -30° | 1.250 | 2.53 | 7.50 | 0.23 | 0.020 | SAFE |
+| 4 | -30° | 2.500 | -30.10 | 12.59 | -1.39 | 0.081 | SAFE |
 
-### Comparison with Standard Laminates
+### Failure Summary
 
-| Laminate Configuration | Tsai-Wu FI | Safety Factor |
-|-----------------------|------------|---------------|
-| Cross-ply [0/90]s | 3.028 | 0.57 |
-| Angle-ply [±45]s | 2.984 | 0.58 |
-| Quasi-isotropic [0/±45/90]s | 0.322 | 1.76 |
-| Balanced [0/±60]s | 0.464 | 1.47 |
-| **Optimized 4-ply** | 0.513 | **1.40** |
-| **Optimized 8-ply** | 0.131 | **2.76** |
-| **Optimized 12-ply** | 0.073 | **3.71** |
+**✓ NO FAILURE - All plies are safe under the applied loading**
+
+- **Critical Location**: Ply 1 (30°) at z = -2.500 mm (bottom)
+- **Maximum Tsai-Hill Index**: 0.198
+- **Safety Factor**: 2.25
 
 ### Visualization
 
 ![Problem 3 Results](assignment3_problem3_results.png)
 
-**Figure 3**: Optimization results. (a) PSO convergence history, (b) Safety factor comparison, (c) Optimized 8-ply laminate stack, (d) Failure index surface for [θ₁/θ₂]s laminate.
-
-### Key Insights
-
-1. **PSO successfully finds optimal ply angles** that significantly outperform standard laminate configurations
-2. **More plies provide greater design freedom** - 12-ply optimized laminate achieves SF = 3.54 vs. quasi-isotropic SF = 1.76
-3. **Standard cross-ply and angle-ply laminates fail** (SF < 1) under this biaxial loading
-4. **Rounded angles (5° increments)** show minimal performance loss, making designs manufacturing-friendly
-5. **The optimization naturally finds balanced-like configurations** with positive and negative angles to handle shear loading
-
-### Recommended Design
-
-For the given biaxial loading (Nₓ = 500, Nᵧ = 300, Nₓᵧ = 100 N/mm):
-
-**Best Performing**: 12-ply symmetric laminate
-**Stacking Sequence**: [-5°/-5°/45°/-5°/55°/-90°]s
-**Safety Factor**: 3.54
-
-This design provides a 3.5× safety margin while using manufacturing-friendly 5° angle increments.
+**Figure 3**: (a) Global stresses vs. z, (b) Local stresses vs. z, (c) Tsai-Hill index by ply, (d) Laminate stacking sequence.
 
 ---
 
-## Summary and Conclusions {#summary}
+## Problem 4: 16-ply Laminate Design with Strain Constraints {#problem-4}
 
-### Assignment Overview
+### Problem Statement
+Design a 16-ply Zylon/Epoxy laminate with:
+- Available angles: 0°, ±30°, ±60°, 90°
+- Applied stresses: σx = 250 MPa, σy = 50 MPa, τxy = 150 MPa
+- Strain limits: εx = 0.006, εy = 0.0006, γxy = 0.02
 
-This assignment explored three fundamental aspects of composite laminate strength analysis:
+Find:
+- (a) All valid stacking sequences
+- (b) Sequence with minimum |αx|
+- (c) Check ply strain limits
 
-1. **Failure Criteria Comparison** - Understanding the differences between Maximum Stress, Maximum Strain, Tsai-Hill, and Tsai-Wu criteria
-2. **First Ply Failure Analysis** - Determining the critical ply and failure load for a quasi-isotropic laminate
-3. **Strength Optimization** - Using PSO to design laminates with maximum strength under complex loading
+### Material Properties
 
-### Key Findings
+**Material**: Zylon/Epoxy
 
-| Topic | Key Result |
-|-------|------------|
-| **Most Conservative Criterion** | Tsai-Wu (accounts for tension-compression asymmetry) |
-| **Critical Ply in [0/45/-45/90]s** | 90° plies (under uniaxial tension) |
-| **FPF Load Variation** | 20-338 N/mm depending on criterion |
-| **Optimization Improvement** | Up to 100% increase in SF vs. standard laminates |
-| **Practical Design** | [-5/-5/45/-5/55/-90]s with SF = 3.54 |
+| Property | Value | Unit |
+|----------|-------|------|
+| E₁ | 120.0 | GPa |
+| E₂ | 6.5 | GPa |
+| G₁₂ | 3.0 | GPa |
+| ν₁₂ | 0.32 | - |
+
+**Thermal Expansion Coefficients**:
+- α₁ = -0.8 × 10⁻⁶ /°C
+- α₂ = 20.5 × 10⁻⁶ /°C
+
+### Part (a): Valid Stacking Sequences
+
+Found **44 valid sequences** satisfying all strain limits.
+
+Top 10 sequences sorted by |αx|:
+
+| # | n₀ | n₉₀ | n±30 | n±60 | εx | εy | γxy | αx (1/°C) |
+|---|-----|------|-------|-------|--------|---------|---------|-----------|
+| 1 | 6 | 0 | 2 | 8 | 0.0042 | -0.0003 | 0.0098 | 7.30×10⁻⁹ |
+| 2 | 4 | 4 | 8 | 0 | 0.0037 | 0.0001 | 0.0117 | -6.32×10⁻⁸ |
+| 3 | 4 | 4 | 6 | 2 | 0.0042 | -0.0000 | 0.0117 | 2.44×10⁻⁷ |
+| 4 | 4 | 2 | 8 | 2 | 0.0037 | -0.0002 | 0.0098 | -3.46×10⁻⁷ |
+| 5 | 2 | 4 | 8 | 2 | 0.0047 | -0.0005 | 0.0098 | 3.86×10⁻⁷ |
+
+### Part (b): Minimum Thermal Expansion Coefficient
+
+**Optimal Sequence**: [0/0/0/30/-30/60/-60/60]s
+
+| Parameter | Value |
+|-----------|-------|
+| n₀ | 6 |
+| n₉₀ | 0 |
+| n±30 | 2 |
+| n±60 | 8 |
+
+**Mid-plane Strains**:
+
+| Component | Value | Limit | Status |
+|-----------|-------|-------|--------|
+| εx | 0.00416 | 0.006 | OK |
+| εy | -0.00032 | 0.0006 | OK |
+| γxy | 0.00980 | 0.02 | OK |
+
+**Thermal Expansion Coefficients**:
+
+| Component | Value |
+|-----------|-------|
+| **αx** | **7.30 × 10⁻⁹ /°C** (minimized!) |
+| αy | 1.42 × 10⁻⁶ /°C |
+| αxy | 0 |
+
+The extremely low αx (nearly zero) makes this laminate ideal for applications requiring dimensional stability under temperature changes.
+
+### Part (c): Ply Strain Failure Check
+
+| Angle | ε₁ | ε₂ | γ₁₂ | Status |
+|-------|------|------|------|--------|
+| 0° | 0.00416 | -0.00032 | 0.00980 | SAFE |
+| 30° | 0.00728 | -0.00344 | 0.00102 | **FAIL** (ε₁, ε₂) |
+| -30° | -0.00121 | 0.00504 | 0.00878 | **FAIL** (ε₂) |
+| 60° | 0.00504 | -0.00121 | -0.00878 | **FAIL** (ε₂) |
+| -60° | -0.00344 | 0.00728 | -0.00102 | **FAIL** (ε₂) |
+
+**⚠ WARNING**: While the laminate strains are within limits, individual ply strains exceed the specified limits for the off-axis plies.
+
+### Visualization
+
+![Problem 4 Results](assignment3_problem4_results.png)
+
+**Figure 4**: (a) Distribution of |αx| for valid sequences, (b) Laminate strains vs. limits, (c) Local ply strains, (d) Optimal laminate stacking.
+
+### Design Recommendations
+
+1. The optimal laminate achieves **near-zero thermal expansion** in the x-direction
+2. However, **ply-level strains exceed limits** in off-axis plies
+3. For a safe design, consider:
+   - Reducing applied loads
+   - Using material with higher strain allowables
+   - Selecting a different sequence that satisfies both laminate and ply constraints
+
+---
+
+## Summary and Conclusions
+
+### Key Results
+
+| Problem | Key Finding |
+|---------|-------------|
+| **Problem 1** | Max Nx = 455.19 N/mm (matrix tension failure), Max Ny = -532.76 N/mm (shear failure) |
+| **Problem 2** | Identified sequence: [90/45/0/-45]s with <0.1% error |
+| **Problem 3** | All plies SAFE, Safety Factor = 2.25, Critical: Ply 1 at z = -2.5 mm |
+| **Problem 4** | 44 valid sequences found, optimal αx = 7.30×10⁻⁹ /°C, but ply failures exist |
 
 ### Conclusions
 
-1. **Failure criterion selection significantly impacts design** - Tsai-Wu should be used for conservative designs, especially when materials have different tension/compression strengths
-
-2. **First Ply Failure is dominated by transverse properties** - The weak transverse direction (Yₜ) typically controls failure in multidirectional laminates
-
-3. **Optimization enables superior designs** - PSO-optimized laminates consistently outperform standard configurations by tailoring ply angles to the specific loading
-
-4. **Practical manufacturing constraints** can be incorporated with minimal performance loss - Rounding to 5° increments reduced SF by only ~5%
-
-### References
-
-1. Gürdal, Z., Haftka, R.T., Hajela, P. (1999). *Design and Optimization of Laminated Composite Materials*. John Wiley & Sons.
-2. Jones, R.M. (1999). *Mechanics of Composite Materials*. Taylor & Francis.
-3. Tsai, S.W., Wu, E.M. (1971). A General Theory of Strength for Anisotropic Materials. *Journal of Composite Materials*, 5(1), 58-80.
+1. **Maximum Strain Criterion** provides conservative predictions for strength envelopes
+2. **Experimental identification** of laminates requires both extensional and bending tests
+3. **Unsymmetric laminates** exhibit bending-extension coupling that must be considered
+4. **Thermal expansion optimization** can achieve near-zero CTE but may conflict with strength requirements
 
 ---
 
 *Analysis Tool: Python with custom composite analysis library*
-*Optimization: Particle Swarm Optimization (PSO)*
 *Date: January 2026*
