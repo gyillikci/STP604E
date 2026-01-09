@@ -44,7 +44,11 @@ Thumbs.db
 *.jpg
 *.pdf
 !STP604E_Fall2025_Assignment1.pdf
+!STP604E_Fall2025_Assignment3.pdf
 !syllabus.pdf
+!assignment3_problem1_results.png
+!assignment3_problem2_results.png
+!assignment3_problem3_results.png
 
 # Logs
 *.log
